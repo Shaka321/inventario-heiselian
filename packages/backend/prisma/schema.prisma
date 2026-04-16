@@ -1,15 +1,271 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Rol {
+  DUENO
+  SUPERVISOR
+  EMPLEADO
+}
+
+enum MetodoPago {
+  EFECTIVO
+  TARJETA
+  TRANSFERENCIA
+  QR
+}
+
+enum EstadoVenta {
+  PENDIENTE
+  COMPLETADA
+  ANULADA
+}
+
+enum TipoEvento {
+  VENTA_CREADA
+  VENTA_ANULADA
+  STOCK_AJUSTADO
+  PRECIO_ACTUALIZADO
+  USUARIO_CREADO
+  USUARIO_DESACTIVADO
+  COMPRA_REGISTRADA
+  CIERRE_CAJA
+  CONTEO_INVENTARIO
+  DEVOLUCION_REGISTRADA
+  LOGIN
+  LOGOUT
+}
+
+model Usuario {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String   @map("password_hash")
+  rol           Rol
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  refreshTokens     RefreshToken[]
+  ventas            Venta[]
+  auditLogs         AuditLog[]
+  preciosHistorial  PrecioHistorial[]
+  cierresCaja       CierreCaja[]
+  conteosInventario ConteoInventario[]
+
+  @@index([email])
+  @@index([rol])
+  @@index([activo])
+  @@map("usuarios")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  usuarioId String   @map("usuario_id")
+  tokenHash String   @unique @map("token_hash")
+  expiraEn  DateTime @map("expira_en")
+  revocado  Boolean  @default(false)
+  creadoEn  DateTime @default(now()) @map("creado_en")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@index([usuarioId])
+  @@index([tokenHash])
+  @@index([expiraEn])
+  @@map("refresh_tokens")
+}
+
+model Categoria {
+  id       String   @id @default(uuid())
+  nombre   String   @unique
+  activo   Boolean  @default(true)
+  creadoEn DateTime @default(now()) @map("creado_en")
+
+  productos Producto[]
+
+  @@index([activo])
+  @@map("categorias")
+}
+
+model Producto {
+  id            String   @id @default(uuid())
+  nombre        String
+  categoriaId   String   @map("categoria_id")
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  categoria Categoria  @relation(fields: [categoriaId], references: [id])
+  variantes Variante[]
+
+  @@index([categoriaId])
+  @@index([activo])
+  @@index([nombre])
+  @@map("productos")
+}
+
+model Variante {
+  id            String   @id @default(uuid())
+  productoId    String   @map("producto_id")
+  sku           String   @unique
+  precio        Decimal  @db.Decimal(10, 2)
+  costo         Decimal  @db.Decimal(10, 2)
+  stock         Int      @default(0)
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  producto         Producto          @relation(fields: [productoId], references: [id])
+  ventaItems       VentaItem[]
+  compras          Compra[]
+  preciosHistorial PrecioHistorial[]
+
+  @@index([productoId])
+  @@index([sku])
+  @@index([activo])
+  @@index([stock])
+  @@map("variantes")
+}
+
+model Venta {
+  id            String      @id @default(uuid())
+  usuarioId     String      @map("usuario_id")
+  total         Decimal     @db.Decimal(10, 2)
+  metodoPago    MetodoPago  @map("metodo_pago")
+  estado        EstadoVenta @default(PENDIENTE)
+  creadoEn      DateTime    @default(now()) @map("creado_en")
+  actualizadoEn DateTime    @updatedAt @map("actualizado_en")
+
+  usuario      Usuario      @relation(fields: [usuarioId], references: [id])
+  items        VentaItem[]
+  devoluciones Devolucion[]
+
+  @@index([usuarioId])
+  @@index([estado])
+  @@index([metodoPago])
+  @@index([creadoEn])
+  @@map("ventas")
+}
+
+model VentaItem {
+  id             String  @id @default(uuid())
+  ventaId        String  @map("venta_id")
+  varianteId     String  @map("variante_id")
+  cantidad       Int
+  precioSnapshot Decimal @map("precio_snapshot") @db.Decimal(10, 2)
+
+  venta    Venta    @relation(fields: [ventaId], references: [id])
+  variante Variante @relation(fields: [varianteId], references: [id])
+
+  @@index([ventaId])
+  @@index([varianteId])
+  @@map("venta_items")
+}
+
+model Devolucion {
+  id            String   @id @default(uuid())
+  ventaId       String   @map("venta_id")
+  justificacion String
+  creadoEn      DateTime @default(now()) @map("creado_en")
+
+  venta Venta @relation(fields: [ventaId], references: [id])
+
+  @@index([ventaId])
+  @@index([creadoEn])
+  @@map("devoluciones")
+}
+
+model Proveedor {
+  id       String   @id @default(uuid())
+  nombre   String
+  activo   Boolean  @default(true)
+  creadoEn DateTime @default(now()) @map("creado_en")
+
+  compras Compra[]
+
+  @@index([activo])
+  @@map("proveedores")
+}
+
+model Compra {
+  id               String   @id @default(uuid())
+  varianteId       String   @map("variante_id")
+  proveedorId      String   @map("proveedor_id")
+  cantidadUnidades Int      @map("cantidad_unidades")
+  costoUnitario    Decimal  @map("costo_unitario") @db.Decimal(10, 2)
+  creadoEn         DateTime @default(now()) @map("creado_en")
+
+  variante  Variante  @relation(fields: [varianteId], references: [id])
+  proveedor Proveedor @relation(fields: [proveedorId], references: [id])
+
+  @@index([varianteId])
+  @@index([proveedorId])
+  @@index([creadoEn])
+  @@map("compras")
+}
+
+model PrecioHistorial {
+  id             String   @id @default(uuid())
+  varianteId     String   @map("variante_id")
+  usuarioId      String   @map("usuario_id")
+  precioAnterior Decimal  @map("precio_anterior") @db.Decimal(10, 2)
+  precioNuevo    Decimal  @map("precio_nuevo") @db.Decimal(10, 2)
+  fecha          DateTime
+
+  variante Variante @relation(fields: [varianteId], references: [id])
+  usuario  Usuario  @relation(fields: [usuarioId], references: [id])
+
+  @@index([varianteId])
+  @@index([usuarioId])
+  @@index([fecha])
+  @@map("precios_historial")
+}
+
+model CierreCaja {
+  id            String   @id @default(uuid())
+  usuarioId     String   @map("usuario_id")
+  montoEsperado Decimal  @map("monto_esperado") @db.Decimal(10, 2)
+  montoReal     Decimal  @map("monto_real") @db.Decimal(10, 2)
+  diferencia    Decimal  @db.Decimal(10, 2)
+  creadoEn      DateTime @default(now()) @map("creado_en")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@index([usuarioId])
+  @@index([creadoEn])
+  @@map("cierres_caja")
+}
+
+model ConteoInventario {
+  id              String   @id @default(uuid())
+  usuarioId       String   @map("usuario_id")
+  diferenciasJson Json     @map("diferencias_json")
+  creadoEn        DateTime @default(now()) @map("creado_en")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@index([usuarioId])
+  @@index([creadoEn])
+  @@map("conteos_inventario")
+}
+
+model AuditLog {
+  id         String     @id @default(uuid())
+  usuarioId  String     @map("usuario_id")
+  tipoEvento TipoEvento @map("tipo_evento")
+  payload    Json
+  checksum   String
+  creadoEn   DateTime   @default(now()) @map("creado_en")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@index([usuarioId])
+  @@index([tipoEvento])
+  @@index([creadoEn])
+  @@index([checksum])
+  @@map("audit_logs")
 }
