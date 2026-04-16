@@ -1,0 +1,12 @@
+{
+  "name": "inventario-heiselian",
+  "private": true,
+  "workspaces": [
+    "packages/backend",
+    "packages/frontend",
+    "packages/shared"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}

@@ -1,0 +1,18 @@
+name: Weekly DB Backup
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Export PostgreSQL (Supabase)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_PROD }}
+        run: |
+          sudo apt-get install -y postgresql-client
+          pg_dump "$DATABASE_URL" | gzip > backup_$(date +%Y%m%d).sql.gz
+          echo "Backup generado: backup_$(date +%Y%m%d).sql.gz"
