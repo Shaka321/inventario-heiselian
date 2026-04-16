@@ -11,12 +11,17 @@ export class Stock {
       throw new DomainError('El stock no puede ser negativo', 'STOCK_NEGATIVO');
     }
     if (!Number.isInteger(cantidad)) {
-      throw new DomainError('El stock debe ser un numero entero', 'STOCK_NO_ENTERO');
+      throw new DomainError(
+        'El stock debe ser un numero entero',
+        'STOCK_NO_ENTERO',
+      );
     }
     return new Stock(cantidad);
   }
 
-  get cantidad(): number { return this._cantidad; }
+  get cantidad(): number {
+    return this._cantidad;
+  }
 
   reducir(cantidad: number): Stock {
     if (cantidad > this._cantidad) {
@@ -28,7 +33,11 @@ export class Stock {
     return new Stock(this._cantidad - cantidad);
   }
 
-  aumentar(cantidad: number): Stock { return Stock.crear(this._cantidad + cantidad); }
+  aumentar(cantidad: number): Stock {
+    return Stock.crear(this._cantidad + cantidad);
+  }
 
-  equals(otro: Stock): boolean { return this._cantidad === otro._cantidad; }
+  equals(otro: Stock): boolean {
+    return this._cantidad === otro._cantidad;
+  }
 }

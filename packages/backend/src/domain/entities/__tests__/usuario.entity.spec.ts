@@ -2,7 +2,12 @@
 import { RolValor } from '../../value-objects/rol.vo';
 import { DomainError } from '../../errors/domain.error';
 
-const props = { id: 'usr-1', email: 'dueno@tienda.com', rol: 'DUENO', passwordHash: 'hash-seguro-abc' };
+const props = {
+  id: 'usr-1',
+  email: 'dueno@tienda.com',
+  rol: 'DUENO',
+  passwordHash: 'hash-seguro-abc',
+};
 
 describe('Usuario', () => {
   it('crea un usuario valido', () => {
@@ -18,13 +23,19 @@ describe('Usuario', () => {
     expect(Usuario.crear({ ...props, rol: 'EMPLEADO' }).esDueno).toBe(false);
   });
   it('rechaza email invalido', () => {
-    expect(() => Usuario.crear({ ...props, email: 'no-es-email' })).toThrow(DomainError);
+    expect(() => Usuario.crear({ ...props, email: 'no-es-email' })).toThrow(
+      DomainError,
+    );
   });
   it('rechaza rol invalido', () => {
-    expect(() => Usuario.crear({ ...props, rol: 'ADMIN' })).toThrow(DomainError);
+    expect(() => Usuario.crear({ ...props, rol: 'ADMIN' })).toThrow(
+      DomainError,
+    );
   });
   it('rechaza passwordHash vacio', () => {
-    expect(() => Usuario.crear({ ...props, passwordHash: '' })).toThrow(DomainError);
+    expect(() => Usuario.crear({ ...props, passwordHash: '' })).toThrow(
+      DomainError,
+    );
   });
   it('desactiva un usuario activo', () => {
     const u = Usuario.crear(props);

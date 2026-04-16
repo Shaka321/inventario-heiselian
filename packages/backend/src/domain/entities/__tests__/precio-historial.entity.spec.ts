@@ -18,18 +18,28 @@ describe('PrecioHistorial', () => {
   });
   it('rechaza fecha futura', () => {
     const fechaFutura = new Date(Date.now() + 1000 * 60 * 60);
-    expect(() => PrecioHistorial.crear({ ...props, fecha: fechaFutura })).toThrow(DomainError);
+    expect(() =>
+      PrecioHistorial.crear({ ...props, fecha: fechaFutura }),
+    ).toThrow(DomainError);
   });
   it('rechaza precioAnterior 0', () => {
-    expect(() => PrecioHistorial.crear({ ...props, precioAnterior: 0 })).toThrow(DomainError);
+    expect(() =>
+      PrecioHistorial.crear({ ...props, precioAnterior: 0 }),
+    ).toThrow(DomainError);
   });
   it('rechaza precioNuevo negativo', () => {
-    expect(() => PrecioHistorial.crear({ ...props, precioNuevo: -5 })).toThrow(DomainError);
+    expect(() => PrecioHistorial.crear({ ...props, precioNuevo: -5 })).toThrow(
+      DomainError,
+    );
   });
   it('rechaza varianteId vacio', () => {
-    expect(() => PrecioHistorial.crear({ ...props, varianteId: '' })).toThrow(DomainError);
+    expect(() => PrecioHistorial.crear({ ...props, varianteId: '' })).toThrow(
+      DomainError,
+    );
   });
   it('rechaza usuarioId vacio', () => {
-    expect(() => PrecioHistorial.crear({ ...props, usuarioId: '' })).toThrow(DomainError);
+    expect(() => PrecioHistorial.crear({ ...props, usuarioId: '' })).toThrow(
+      DomainError,
+    );
   });
 });

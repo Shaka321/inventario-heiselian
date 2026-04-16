@@ -1,7 +1,11 @@
 ﻿import { RefreshToken } from '../refresh-token.entity';
 import { DomainError } from '../../errors/domain.error';
 
-const props = { id: 'rt-1', usuarioId: 'usr-1', tokenHash: 'hash-token-abc123' };
+const props = {
+  id: 'rt-1',
+  usuarioId: 'usr-1',
+  tokenHash: 'hash-token-abc123',
+};
 
 describe('RefreshToken', () => {
   it('crea un token valido', () => {
@@ -27,9 +31,13 @@ describe('RefreshToken', () => {
     expect(() => rt.revocar()).toThrow(DomainError);
   });
   it('rechaza tokenHash vacio', () => {
-    expect(() => RefreshToken.crear({ ...props, tokenHash: '' })).toThrow(DomainError);
+    expect(() => RefreshToken.crear({ ...props, tokenHash: '' })).toThrow(
+      DomainError,
+    );
   });
   it('rechaza usuarioId vacio', () => {
-    expect(() => RefreshToken.crear({ ...props, usuarioId: '' })).toThrow(DomainError);
+    expect(() => RefreshToken.crear({ ...props, usuarioId: '' })).toThrow(
+      DomainError,
+    );
   });
 });

@@ -2,8 +2,18 @@
 import { VentaItem } from '../venta-item.entity';
 import { DomainError } from '../../errors/domain.error';
 
-const item1 = VentaItem.crear({ id: 'item-1', varianteId: 'var-1', cantidad: 2, precioSnapshot: 10 });
-const item2 = VentaItem.crear({ id: 'item-2', varianteId: 'var-2', cantidad: 1, precioSnapshot: 5 });
+const item1 = VentaItem.crear({
+  id: 'item-1',
+  varianteId: 'var-1',
+  cantidad: 2,
+  precioSnapshot: 10,
+});
+const item2 = VentaItem.crear({
+  id: 'item-2',
+  varianteId: 'var-2',
+  cantidad: 1,
+  precioSnapshot: 5,
+});
 
 const props = {
   id: 'venta-1',
@@ -28,14 +38,18 @@ describe('Venta', () => {
       expect(() => Venta.crear({ ...props, items: [] })).toThrow(DomainError);
     });
     it('rechaza metodo de pago invalido', () => {
-      expect(() => Venta.crear({ ...props, metodoPago: 'BITCOIN' })).toThrow(DomainError);
+      expect(() => Venta.crear({ ...props, metodoPago: 'BITCOIN' })).toThrow(
+        DomainError,
+      );
     });
     it('acepta metodo de pago en minusculas', () => {
       const v = Venta.crear({ ...props, metodoPago: 'tarjeta' });
       expect(v.metodoPago).toBe(MetodoPago.TARJETA);
     });
     it('rechaza usuarioId vacio', () => {
-      expect(() => Venta.crear({ ...props, usuarioId: '' })).toThrow(DomainError);
+      expect(() => Venta.crear({ ...props, usuarioId: '' })).toThrow(
+        DomainError,
+      );
     });
   });
 

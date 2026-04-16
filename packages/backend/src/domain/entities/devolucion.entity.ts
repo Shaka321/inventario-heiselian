@@ -16,10 +16,16 @@ export class Devolucion {
     plazoMaximoDias?: number;
   }): Devolucion {
     if (!props.id || props.id.trim().length === 0) {
-      throw new DomainError('El ID de la devolucion no puede estar vacio', 'DEVOLUCION_ID_VACIO');
+      throw new DomainError(
+        'El ID de la devolucion no puede estar vacio',
+        'DEVOLUCION_ID_VACIO',
+      );
     }
     if (!props.ventaId || props.ventaId.trim().length === 0) {
-      throw new DomainError('La devolucion debe estar asociada a una venta', 'DEVOLUCION_VENTA_VACIO');
+      throw new DomainError(
+        'La devolucion debe estar asociada a una venta',
+        'DEVOLUCION_VENTA_VACIO',
+      );
     }
     if (!props.justificacion || props.justificacion.trim().length < 20) {
       throw new DomainError(
@@ -38,11 +44,24 @@ export class Devolucion {
         'DEVOLUCION_FUERA_DE_PLAZO',
       );
     }
-    return new Devolucion(props.id, props.ventaId, props.justificacion.trim(), new Date());
+    return new Devolucion(
+      props.id,
+      props.ventaId,
+      props.justificacion.trim(),
+      new Date(),
+    );
   }
 
-  get id(): string { return this._id; }
-  get ventaId(): string { return this._ventaId; }
-  get justificacion(): string { return this._justificacion; }
-  get creadoEn(): Date { return this._creadoEn; }
+  get id(): string {
+    return this._id;
+  }
+  get ventaId(): string {
+    return this._ventaId;
+  }
+  get justificacion(): string {
+    return this._justificacion;
+  }
+  get creadoEn(): Date {
+    return this._creadoEn;
+  }
 }

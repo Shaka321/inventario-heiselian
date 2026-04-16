@@ -5,8 +5,8 @@ const props = {
   id: 'var-1',
   productoId: 'prod-1',
   sku: 'ARR-001',
-  precio: 10.00,
-  costo: 7.00,
+  precio: 10.0,
+  costo: 7.0,
   stock: 100,
 };
 
@@ -21,19 +21,29 @@ describe('Variante', () => {
       expect(v.activo).toBe(true);
     });
     it('rechaza precio menor que costo', () => {
-      expect(() => Variante.crear({ ...props, precio: 5, costo: 7 })).toThrow(DomainError);
+      expect(() => Variante.crear({ ...props, precio: 5, costo: 7 })).toThrow(
+        DomainError,
+      );
     });
     it('rechaza precio igual al costo', () => {
-      expect(() => Variante.crear({ ...props, precio: 7, costo: 7 })).toThrow(DomainError);
+      expect(() => Variante.crear({ ...props, precio: 7, costo: 7 })).toThrow(
+        DomainError,
+      );
     });
     it('rechaza stock negativo', () => {
-      expect(() => Variante.crear({ ...props, stock: -1 })).toThrow(DomainError);
+      expect(() => Variante.crear({ ...props, stock: -1 })).toThrow(
+        DomainError,
+      );
     });
     it('rechaza SKU invalido', () => {
-      expect(() => Variante.crear({ ...props, sku: 'AB' })).toThrow(DomainError);
+      expect(() => Variante.crear({ ...props, sku: 'AB' })).toThrow(
+        DomainError,
+      );
     });
     it('rechaza productoId vacio', () => {
-      expect(() => Variante.crear({ ...props, productoId: '' })).toThrow(DomainError);
+      expect(() => Variante.crear({ ...props, productoId: '' })).toThrow(
+        DomainError,
+      );
     });
   });
 

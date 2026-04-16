@@ -1,7 +1,7 @@
-﻿import { DomainError } from '../errors/domain.error';
+import { DomainError } from '../errors/domain.error';
 
 export class SKU {
-  private static readonly PATRON = /^[A-Z0-9\-]{3,20}$/;
+  private static readonly PATRON = /^[A-Z0-9-]{3,20}$/;
 
   private constructor(private readonly _valor: string) {}
 
@@ -19,9 +19,15 @@ export class SKU {
     return new SKU(normalizado);
   }
 
-  get valor(): string { return this._valor; }
+  get valor(): string {
+    return this._valor;
+  }
 
-  equals(otro: SKU): boolean { return this._valor === otro._valor; }
+  equals(otro: SKU): boolean {
+    return this._valor === otro._valor;
+  }
 
-  toString(): string { return this._valor; }
+  toString(): string {
+    return this._valor;
+  }
 }

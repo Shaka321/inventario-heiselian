@@ -16,21 +16,33 @@ describe('Devolucion', () => {
     expect(d.justificacion).toBe(props.justificacion);
   });
   it('rechaza justificacion menor a 20 chars', () => {
-    expect(() => Devolucion.crear({ ...props, justificacion: 'Muy corta' })).toThrow(DomainError);
+    expect(() =>
+      Devolucion.crear({ ...props, justificacion: 'Muy corta' }),
+    ).toThrow(DomainError);
   });
   it('rechaza justificacion vacia', () => {
-    expect(() => Devolucion.crear({ ...props, justificacion: '' })).toThrow(DomainError);
+    expect(() => Devolucion.crear({ ...props, justificacion: '' })).toThrow(
+      DomainError,
+    );
   });
   it('rechaza si no tiene ventaId', () => {
-    expect(() => Devolucion.crear({ ...props, ventaId: '' })).toThrow(DomainError);
+    expect(() => Devolucion.crear({ ...props, ventaId: '' })).toThrow(
+      DomainError,
+    );
   });
   it('rechaza si la venta es muy antigua (fuera de plazo)', () => {
     const fechaAntigua = new Date(Date.now() - 1000 * 60 * 60 * 24 * 31); // hace 31 dias
-    expect(() => Devolucion.crear({ ...props, fechaVenta: fechaAntigua })).toThrow(DomainError);
+    expect(() =>
+      Devolucion.crear({ ...props, fechaVenta: fechaAntigua }),
+    ).toThrow(DomainError);
   });
   it('acepta devolucion dentro del plazo personalizado', () => {
     const fechaMes = new Date(Date.now() - 1000 * 60 * 60 * 24 * 5);
-    const d = Devolucion.crear({ ...props, fechaVenta: fechaMes, plazoMaximoDias: 10 });
+    const d = Devolucion.crear({
+      ...props,
+      fechaVenta: fechaMes,
+      plazoMaximoDias: 10,
+    });
     expect(d.id).toBe('dev-1');
   });
 });

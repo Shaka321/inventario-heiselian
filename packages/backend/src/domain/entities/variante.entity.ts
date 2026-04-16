@@ -23,10 +23,16 @@ export class Variante {
     stock: number;
   }): Variante {
     if (!props.id || props.id.trim().length === 0) {
-      throw new DomainError('El ID de la variante no puede estar vacio', 'VARIANTE_ID_VACIO');
+      throw new DomainError(
+        'El ID de la variante no puede estar vacio',
+        'VARIANTE_ID_VACIO',
+      );
     }
     if (!props.productoId || props.productoId.trim().length === 0) {
-      throw new DomainError('El ProductoId no puede estar vacio', 'VARIANTE_PRODUCTO_INVALIDO');
+      throw new DomainError(
+        'El ProductoId no puede estar vacio',
+        'VARIANTE_PRODUCTO_INVALIDO',
+      );
     }
 
     const sku = SKU.crear(props.sku);
@@ -41,7 +47,15 @@ export class Variante {
       );
     }
 
-    return new Variante(props.id, props.productoId, sku, precio, costo, stock, true);
+    return new Variante(
+      props.id,
+      props.productoId,
+      sku,
+      precio,
+      costo,
+      stock,
+      true,
+    );
   }
 
   reducirStock(cantidad: number): void {
@@ -67,16 +81,33 @@ export class Variante {
 
   desactivar(): void {
     if (!this._activo) {
-      throw new DomainError('La variante ya esta desactivada', 'VARIANTE_YA_DESACTIVADA');
+      throw new DomainError(
+        'La variante ya esta desactivada',
+        'VARIANTE_YA_DESACTIVADA',
+      );
     }
     this._activo = false;
   }
 
-  get id(): string { return this._id; }
-  get productoId(): string { return this._productoId; }
-  get sku(): SKU { return this._sku; }
-  get precio(): Precio { return this._precio; }
-  get costo(): Precio { return this._costo; }
-  get stock(): Stock { return this._stock; }
-  get activo(): boolean { return this._activo; }
+  get id(): string {
+    return this._id;
+  }
+  get productoId(): string {
+    return this._productoId;
+  }
+  get sku(): SKU {
+    return this._sku;
+  }
+  get precio(): Precio {
+    return this._precio;
+  }
+  get costo(): Precio {
+    return this._costo;
+  }
+  get stock(): Stock {
+    return this._stock;
+  }
+  get activo(): boolean {
+    return this._activo;
+  }
 }

@@ -12,16 +12,22 @@ describe('Producto', () => {
       expect(p.activo).toBe(true);
     });
     it('rechaza nombre menor a 2 chars', () => {
-      expect(() => Producto.crear({ ...props, nombre: 'A' })).toThrow(DomainError);
+      expect(() => Producto.crear({ ...props, nombre: 'A' })).toThrow(
+        DomainError,
+      );
     });
     it('rechaza nombre vacio', () => {
-      expect(() => Producto.crear({ ...props, nombre: '' })).toThrow(DomainError);
+      expect(() => Producto.crear({ ...props, nombre: '' })).toThrow(
+        DomainError,
+      );
     });
     it('rechaza id vacio', () => {
       expect(() => Producto.crear({ ...props, id: '' })).toThrow(DomainError);
     });
     it('rechaza categoriaId vacio', () => {
-      expect(() => Producto.crear({ ...props, categoriaId: '' })).toThrow(DomainError);
+      expect(() => Producto.crear({ ...props, categoriaId: '' })).toThrow(
+        DomainError,
+      );
     });
   });
 

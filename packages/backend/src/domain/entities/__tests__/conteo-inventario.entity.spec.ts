@@ -16,13 +16,19 @@ describe('ConteoInventario', () => {
     expect(c.diferenciasJson).toEqual({ 'var-1': -3, 'var-2': 5 });
   });
   it('rechaza si el rol es SUPERVISOR', () => {
-    expect(() => ConteoInventario.crear({ ...props, rolUsuario: RolValor.SUPERVISOR })).toThrow(DomainError);
+    expect(() =>
+      ConteoInventario.crear({ ...props, rolUsuario: RolValor.SUPERVISOR }),
+    ).toThrow(DomainError);
   });
   it('rechaza si el rol es EMPLEADO', () => {
-    expect(() => ConteoInventario.crear({ ...props, rolUsuario: RolValor.EMPLEADO })).toThrow(DomainError);
+    expect(() =>
+      ConteoInventario.crear({ ...props, rolUsuario: RolValor.EMPLEADO }),
+    ).toThrow(DomainError);
   });
   it('rechaza usuarioId vacio', () => {
-    expect(() => ConteoInventario.crear({ ...props, usuarioId: '' })).toThrow(DomainError);
+    expect(() => ConteoInventario.crear({ ...props, usuarioId: '' })).toThrow(
+      DomainError,
+    );
   });
   it('retorna copia de diferenciasJson (inmutabilidad)', () => {
     const c = ConteoInventario.crear(props);

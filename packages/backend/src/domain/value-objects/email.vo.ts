@@ -11,17 +11,29 @@ export class Email {
     }
     const normalizado = valor.trim().toLowerCase();
     if (!Email.PATRON.test(normalizado)) {
-      throw new DomainError('El formato del email es invalido', 'EMAIL_FORMATO_INVALIDO');
+      throw new DomainError(
+        'El formato del email es invalido',
+        'EMAIL_FORMATO_INVALIDO',
+      );
     }
     if (normalizado.length > 254) {
-      throw new DomainError('El email es demasiado largo', 'EMAIL_DEMASIADO_LARGO');
+      throw new DomainError(
+        'El email es demasiado largo',
+        'EMAIL_DEMASIADO_LARGO',
+      );
     }
     return new Email(normalizado);
   }
 
-  get valor(): string { return this._valor; }
+  get valor(): string {
+    return this._valor;
+  }
 
-  equals(otro: Email): boolean { return this._valor === otro._valor; }
+  equals(otro: Email): boolean {
+    return this._valor === otro._valor;
+  }
 
-  toString(): string { return this._valor; }
+  toString(): string {
+    return this._valor;
+  }
 }

@@ -33,13 +33,22 @@ export class Venta {
     metodoPago: string;
   }): Venta {
     if (!props.id || props.id.trim().length === 0) {
-      throw new DomainError('El ID de la venta no puede estar vacio', 'VENTA_ID_VACIO');
+      throw new DomainError(
+        'El ID de la venta no puede estar vacio',
+        'VENTA_ID_VACIO',
+      );
     }
     if (!props.usuarioId || props.usuarioId.trim().length === 0) {
-      throw new DomainError('El UsuarioId no puede estar vacio', 'VENTA_USUARIO_VACIO');
+      throw new DomainError(
+        'El UsuarioId no puede estar vacio',
+        'VENTA_USUARIO_VACIO',
+      );
     }
     if (!props.items || props.items.length === 0) {
-      throw new DomainError('La venta debe tener al menos un item', 'VENTA_SIN_ITEMS');
+      throw new DomainError(
+        'La venta debe tener al menos un item',
+        'VENTA_SIN_ITEMS',
+      );
     }
     const metodoPago = props.metodoPago?.toUpperCase();
     if (!Object.values(MetodoPago).includes(metodoPago as MetodoPago)) {
@@ -65,7 +74,10 @@ export class Venta {
 
   completar(): void {
     if (this._estado !== EstadoVenta.PENDIENTE) {
-      throw new DomainError('Solo se puede completar una venta pendiente', 'VENTA_ESTADO_INVALIDO');
+      throw new DomainError(
+        'Solo se puede completar una venta pendiente',
+        'VENTA_ESTADO_INVALIDO',
+      );
     }
     this._estado = EstadoVenta.COMPLETADA;
   }
@@ -77,11 +89,25 @@ export class Venta {
     this._estado = EstadoVenta.ANULADA;
   }
 
-  get id(): string { return this._id; }
-  get usuarioId(): string { return this._usuarioId; }
-  get items(): VentaItem[] { return [...this._items]; }
-  get total(): Precio { return this._total; }
-  get metodoPago(): MetodoPago { return this._metodoPago; }
-  get estado(): EstadoVenta { return this._estado; }
-  get creadoEn(): Date { return this._creadoEn; }
+  get id(): string {
+    return this._id;
+  }
+  get usuarioId(): string {
+    return this._usuarioId;
+  }
+  get items(): VentaItem[] {
+    return [...this._items];
+  }
+  get total(): Precio {
+    return this._total;
+  }
+  get metodoPago(): MetodoPago {
+    return this._metodoPago;
+  }
+  get estado(): EstadoVenta {
+    return this._estado;
+  }
+  get creadoEn(): Date {
+    return this._creadoEn;
+  }
 }

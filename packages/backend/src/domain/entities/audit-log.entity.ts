@@ -39,10 +39,16 @@ export class AuditLog {
       throw new DomainError('El ID no puede estar vacio', 'AUDIT_LOG_ID_VACIO');
     }
     if (!props.usuarioId || props.usuarioId.trim().length === 0) {
-      throw new DomainError('El UsuarioId no puede estar vacio', 'AUDIT_LOG_USUARIO_VACIO');
+      throw new DomainError(
+        'El UsuarioId no puede estar vacio',
+        'AUDIT_LOG_USUARIO_VACIO',
+      );
     }
     if (!secret || secret.trim().length === 0) {
-      throw new DomainError('El secret HMAC no puede estar vacio', 'AUDIT_LOG_SECRET_VACIO');
+      throw new DomainError(
+        'El secret HMAC no puede estar vacio',
+        'AUDIT_LOG_SECRET_VACIO',
+      );
     }
     const tipoEvento = props.tipoEvento?.toUpperCase();
     if (!Object.values(TipoEvento).includes(tipoEvento as TipoEvento)) {
@@ -52,17 +58,36 @@ export class AuditLog {
       );
     }
     if (!props.payload || typeof props.payload !== 'object') {
-      throw new DomainError('El payload debe ser un objeto', 'AUDIT_LOG_PAYLOAD_INVALIDO');
+      throw new DomainError(
+        'El payload debe ser un objeto',
+        'AUDIT_LOG_PAYLOAD_INVALIDO',
+      );
     }
     const creadoEn = new Date();
     const checksum = AuditLog.calcularChecksum(
-      { id: props.id, tipoEvento, usuarioId: props.usuarioId, payload: props.payload, creadoEn: creadoEn.toISOString() },
+      {
+        id: props.id,
+        tipoEvento,
+        usuarioId: props.usuarioId,
+        payload: props.payload,
+        creadoEn: creadoEn.toISOString(),
+      },
       secret,
     );
-    return new AuditLog(props.id, tipoEvento as TipoEvento, props.usuarioId, { ...props.payload }, checksum, creadoEn);
+    return new AuditLog(
+      props.id,
+      tipoEvento as TipoEvento,
+      props.usuarioId,
+      { ...props.payload },
+      checksum,
+      creadoEn,
+    );
   }
 
-  static calcularChecksum(data: Record<string, unknown>, secret: string): string {
+  static calcularChecksum(
+    data: Record<string, unknown>,
+    secret: string,
+  ): string {
     return createHmac('sha256', secret)
       .update(JSON.stringify(data))
       .digest('hex');
@@ -82,10 +107,22 @@ export class AuditLog {
     return esperado === this._checksum;
   }
 
-  get id(): string { return this._id; }
-  get tipoEvento(): TipoEvento { return this._tipoEvento; }
-  get usuarioId(): string { return this._usuarioId; }
-  get payload(): Record<string, unknown> { return { ...this._payload }; }
-  get checksum(): string { return this._checksum; }
-  get creadoEn(): Date { return this._creadoEn; }
+  get id(): string {
+    return this._id;
+  }
+  get tipoEvento(): TipoEvento {
+    return this._tipoEvento;
+  }
+  get usuarioId(): string {
+    return this._usuarioId;
+  }
+  get payload(): Record<string, unknown> {
+    return { ...this._payload };
+  }
+  get checksum(): string {
+    return this._checksum;
+  }
+  get creadoEn(): Date {
+    return this._creadoEn;
+  }
 }

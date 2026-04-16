@@ -20,20 +20,45 @@ export class ConteoInventario {
       throw new DomainError('El ID no puede estar vacio', 'CONTEO_ID_VACIO');
     }
     if (!props.usuarioId || props.usuarioId.trim().length === 0) {
-      throw new DomainError('El UsuarioId no puede estar vacio', 'CONTEO_USUARIO_VACIO');
+      throw new DomainError(
+        'El UsuarioId no puede estar vacio',
+        'CONTEO_USUARIO_VACIO',
+      );
     }
     if (props.rolUsuario !== RolValor.DUENO) {
-      throw new DomainError('Solo el dueno puede iniciar un conteo de inventario', 'CONTEO_ROL_INSUFICIENTE');
+      throw new DomainError(
+        'Solo el dueno puede iniciar un conteo de inventario',
+        'CONTEO_ROL_INSUFICIENTE',
+      );
     }
     if (!props.diferenciasJson || typeof props.diferenciasJson !== 'object') {
-      throw new DomainError('Las diferencias deben ser un objeto JSON valido', 'CONTEO_DIFERENCIAS_INVALIDAS');
+      throw new DomainError(
+        'Las diferencias deben ser un objeto JSON valido',
+        'CONTEO_DIFERENCIAS_INVALIDAS',
+      );
     }
-    return new ConteoInventario(props.id, props.usuarioId, props.rolUsuario, { ...props.diferenciasJson }, new Date());
+    return new ConteoInventario(
+      props.id,
+      props.usuarioId,
+      props.rolUsuario,
+      { ...props.diferenciasJson },
+      new Date(),
+    );
   }
 
-  get id(): string { return this._id; }
-  get usuarioId(): string { return this._usuarioId; }
-  get rolUsuario(): RolValor { return this._rolUsuario; }
-  get diferenciasJson(): Record<string, number> { return { ...this._diferenciasJson }; }
-  get creadoEn(): Date { return this._creadoEn; }
+  get id(): string {
+    return this._id;
+  }
+  get usuarioId(): string {
+    return this._usuarioId;
+  }
+  get rolUsuario(): RolValor {
+    return this._rolUsuario;
+  }
+  get diferenciasJson(): Record<string, number> {
+    return { ...this._diferenciasJson };
+  }
+  get creadoEn(): Date {
+    return this._creadoEn;
+  }
 }

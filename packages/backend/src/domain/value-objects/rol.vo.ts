@@ -23,15 +23,23 @@ export class Rol {
     return new Rol(valorUpper as RolValor);
   }
 
-  get valor(): RolValor { return this._valor; }
+  get valor(): RolValor {
+    return this._valor;
+  }
 
-  esDueno(): boolean { return this._valor === RolValor.DUENO; }
+  esDueno(): boolean {
+    return this._valor === RolValor.DUENO;
+  }
 
   esSupervisorOSuperior(): boolean {
     return [RolValor.DUENO, RolValor.SUPERVISOR].includes(this._valor);
   }
 
-  equals(otro: Rol): boolean { return this._valor === otro._valor; }
+  equals(otro: Rol): boolean {
+    return this._valor === otro._valor;
+  }
 
-  toString(): string { return this._valor; }
+  toString(): string {
+    return this._valor;
+  }
 }

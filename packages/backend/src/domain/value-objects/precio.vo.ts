@@ -8,19 +8,33 @@ export class Precio {
       throw new DomainError('El precio debe ser un numero', 'PRECIO_INVALIDO');
     }
     if (valor <= 0) {
-      throw new DomainError('El precio debe ser mayor que 0', 'PRECIO_NO_POSITIVO');
+      throw new DomainError(
+        'El precio debe ser mayor que 0',
+        'PRECIO_NO_POSITIVO',
+      );
     }
     if (!Number.isFinite(valor)) {
-      throw new DomainError('El precio no puede ser infinito', 'PRECIO_INFINITO');
+      throw new DomainError(
+        'El precio no puede ser infinito',
+        'PRECIO_INFINITO',
+      );
     }
     return new Precio(Math.round(valor * 100) / 100);
   }
 
-  get valor(): number { return this._valor; }
+  get valor(): number {
+    return this._valor;
+  }
 
-  esMayorQue(otro: Precio): boolean { return this._valor > otro._valor; }
+  esMayorQue(otro: Precio): boolean {
+    return this._valor > otro._valor;
+  }
 
-  equals(otro: Precio): boolean { return this._valor === otro._valor; }
+  equals(otro: Precio): boolean {
+    return this._valor === otro._valor;
+  }
 
-  toString(): string { return this._valor.toFixed(2); }
+  toString(): string {
+    return this._valor.toFixed(2);
+  }
 }

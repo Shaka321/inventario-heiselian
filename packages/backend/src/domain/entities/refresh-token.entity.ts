@@ -18,22 +18,43 @@ export class RefreshToken {
     tokenHash: string;
   }): RefreshToken {
     if (!props.id || props.id.trim().length === 0) {
-      throw new DomainError('El ID no puede estar vacio', 'REFRESH_TOKEN_ID_VACIO');
+      throw new DomainError(
+        'El ID no puede estar vacio',
+        'REFRESH_TOKEN_ID_VACIO',
+      );
     }
     if (!props.usuarioId || props.usuarioId.trim().length === 0) {
-      throw new DomainError('El UsuarioId no puede estar vacio', 'REFRESH_TOKEN_USUARIO_VACIO');
+      throw new DomainError(
+        'El UsuarioId no puede estar vacio',
+        'REFRESH_TOKEN_USUARIO_VACIO',
+      );
     }
     if (!props.tokenHash || props.tokenHash.trim().length === 0) {
-      throw new DomainError('El tokenHash no puede estar vacio', 'REFRESH_TOKEN_HASH_VACIO');
+      throw new DomainError(
+        'El tokenHash no puede estar vacio',
+        'REFRESH_TOKEN_HASH_VACIO',
+      );
     }
     const ahora = new Date();
-    const expiraEn = new Date(ahora.getTime() + DIAS_EXPIRACION * 24 * 60 * 60 * 1000);
-    return new RefreshToken(props.id, props.usuarioId, props.tokenHash, expiraEn, false, ahora);
+    const expiraEn = new Date(
+      ahora.getTime() + DIAS_EXPIRACION * 24 * 60 * 60 * 1000,
+    );
+    return new RefreshToken(
+      props.id,
+      props.usuarioId,
+      props.tokenHash,
+      expiraEn,
+      false,
+      ahora,
+    );
   }
 
   revocar(): void {
     if (this._revocado) {
-      throw new DomainError('El token ya fue revocado', 'REFRESH_TOKEN_YA_REVOCADO');
+      throw new DomainError(
+        'El token ya fue revocado',
+        'REFRESH_TOKEN_YA_REVOCADO',
+      );
     }
     this._revocado = true;
   }
@@ -42,10 +63,22 @@ export class RefreshToken {
     return !this._revocado && new Date() < this._expiraEn;
   }
 
-  get id(): string { return this._id; }
-  get usuarioId(): string { return this._usuarioId; }
-  get tokenHash(): string { return this._tokenHash; }
-  get expiraEn(): Date { return this._expiraEn; }
-  get revocado(): boolean { return this._revocado; }
-  get creadoEn(): Date { return this._creadoEn; }
+  get id(): string {
+    return this._id;
+  }
+  get usuarioId(): string {
+    return this._usuarioId;
+  }
+  get tokenHash(): string {
+    return this._tokenHash;
+  }
+  get expiraEn(): Date {
+    return this._expiraEn;
+  }
+  get revocado(): boolean {
+    return this._revocado;
+  }
+  get creadoEn(): Date {
+    return this._creadoEn;
+  }
 }
