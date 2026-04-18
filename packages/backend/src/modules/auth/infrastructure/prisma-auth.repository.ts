@@ -11,7 +11,6 @@ interface UsuarioRow {
   passwordHash: string;
   activo: boolean;
   creadoEn: Date;
-  actualizadoEn: Date;
 }
 
 interface RefreshTokenRow {

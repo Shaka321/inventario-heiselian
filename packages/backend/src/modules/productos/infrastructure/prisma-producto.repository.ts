@@ -10,7 +10,9 @@ export class PrismaProductoRepository implements IProductoRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findById(id: string): Promise<IProducto | null> {
-    return this.prisma.producto.findUnique({ where: { id } });
+    return this.prisma.producto.findUnique({
+      where: { id },
+    }) as Promise<IProducto | null>;
   }
 
   async findByNombre(
@@ -19,7 +21,7 @@ export class PrismaProductoRepository implements IProductoRepository {
   ): Promise<IProducto | null> {
     return this.prisma.producto.findFirst({
       where: { nombre, categoriaId, activo: true },
-    });
+    }) as Promise<IProducto | null>;
   }
 
   async save(producto: IProducto): Promise<void> {
@@ -44,6 +46,6 @@ export class PrismaProductoRepository implements IProductoRepository {
     return this.prisma.producto.findMany({
       where: soloActivos ? { activo: true } : undefined,
       orderBy: { nombre: 'asc' },
-    });
+    }) as Promise<IProducto[]>;
   }
 }

@@ -37,18 +37,25 @@ export class PrismaInventarioRepository implements IInventarioRepository {
   }
 
   async getStockActual(varianteId: string): Promise<number> {
-    const variante = await this.prisma.variante.findUnique({
+    const variante = (await this.prisma.variante.findUnique({
       where: { id: varianteId },
       select: { stock: true },
-    });
+    })) as { stock: number } | null;
     return variante?.stock ?? 0;
   }
 
   async findComprasByVariante(varianteId: string): Promise<ICompra[]> {
-    const rows = await this.prisma.compra.findMany({
+    const rows = (await this.prisma.compra.findMany({
       where: { varianteId },
       orderBy: { creadoEn: 'desc' },
-    });
+    })) as Array<{
+      id: string;
+      varianteId: string;
+      proveedorId: string;
+      cantidadUnidades: number;
+      costoUnitario: { toString(): string } | number;
+      creadoEn: Date;
+    }>;
     return rows.map((r) => ({
       id: r.id,
       varianteId: r.varianteId,

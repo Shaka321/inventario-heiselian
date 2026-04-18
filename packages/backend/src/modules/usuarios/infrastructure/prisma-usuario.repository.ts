@@ -71,10 +71,7 @@ export class PrismaUsuarioRepository implements IUsuarioRepository {
   }
 
   async updatePassword(id: string, passwordHash: string): Promise<void> {
-    await this.prisma.usuario.update({
-      where: { id },
-      data: { passwordHash },
-    });
+    await this.prisma.usuario.update({ where: { id }, data: { passwordHash } });
   }
 
   async findAll(): Promise<Usuario[]> {

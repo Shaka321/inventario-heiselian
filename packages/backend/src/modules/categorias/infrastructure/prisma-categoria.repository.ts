@@ -10,11 +10,15 @@ export class PrismaCategoriaRepository implements ICategoriaRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findById(id: string): Promise<ICategoria | null> {
-    return this.prisma.categoria.findUnique({ where: { id } });
+    return this.prisma.categoria.findUnique({
+      where: { id },
+    }) as Promise<ICategoria | null>;
   }
 
   async findByNombre(nombre: string): Promise<ICategoria | null> {
-    return this.prisma.categoria.findUnique({ where: { nombre } });
+    return this.prisma.categoria.findUnique({
+      where: { nombre },
+    }) as Promise<ICategoria | null>;
   }
 
   async save(categoria: ICategoria): Promise<void> {
@@ -32,6 +36,6 @@ export class PrismaCategoriaRepository implements ICategoriaRepository {
     return this.prisma.categoria.findMany({
       where: soloActivas ? { activo: true } : undefined,
       orderBy: { nombre: 'asc' },
-    });
+    }) as Promise<ICategoria[]>;
   }
 }

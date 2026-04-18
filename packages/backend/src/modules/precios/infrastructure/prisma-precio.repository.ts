@@ -10,10 +10,10 @@ export class PrismaPrecioRepository implements IPrecioRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getCurrentPrice(varianteId: string): Promise<number> {
-    const variante = await this.prisma.variante.findUnique({
+    const variante = (await this.prisma.variante.findUnique({
       where: { id: varianteId },
       select: { precio: true },
-    });
+    })) as { precio: { toString(): string } | number } | null;
     return Number(variante?.precio ?? 0);
   }
 
@@ -38,10 +38,17 @@ export class PrismaPrecioRepository implements IPrecioRepository {
   }
 
   async getPriceHistory(varianteId: string): Promise<IPrecioHistorial[]> {
-    const rows = await this.prisma.precioHistorial.findMany({
+    const rows = (await this.prisma.precioHistorial.findMany({
       where: { varianteId },
       orderBy: { fecha: 'desc' },
-    });
+    })) as Array<{
+      id: string;
+      varianteId: string;
+      usuarioId: string;
+      precioAnterior: { toString(): string } | number;
+      precioNuevo: { toString(): string } | number;
+      fecha: Date;
+    }>;
     return rows.map((r) => ({
       id: r.id,
       varianteId: r.varianteId,
