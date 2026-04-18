@@ -32,24 +32,25 @@ export class RegisterSaleUseCase {
 
     const result = await this.prisma.$transaction(async (tx) => {
       const varianteIds = dto.items.map((i) => i.varianteId);
-      const variantes = await tx.$queryRawUnsafe<VarianteRaw[]>(
-        `SELECT id, sku, precio::float, stock, activo
-         FROM variantes
-         WHERE id = ANY($1::uuid[])
-         ORDER BY id
-         FOR UPDATE`,
-        varianteIds,
-      );
+
+      const variantes = await tx.$queryRaw<VarianteRaw[]>`
+        SELECT id::text, sku, precio::float8 as precio, stock, activo
+        FROM variantes
+        WHERE id = ANY(${varianteIds}::uuid[])
+        ORDER BY id
+        FOR UPDATE
+      `;
 
       if (variantes.length !== varianteIds.length) {
         throw new BadRequestException('Una o mas variantes no encontradas');
       }
 
-      const varianteMap = new Map(variantes.map((v) => [v.id, v]));
+      const varianteMap = new Map<string, VarianteRaw>(
+        variantes.map((v) => [v.id, v]),
+      );
       let total = 0;
       const itemsConSnapshot: Array<{
         id: string;
-        ventaId: string;
         varianteId: string;
         cantidad: number;
         precioSnapshot: number;
@@ -73,7 +74,6 @@ export class RegisterSaleUseCase {
         total += precioSnapshot * item.cantidad;
         itemsConSnapshot.push({
           id: crypto.randomUUID(),
-          ventaId,
           varianteId: item.varianteId,
           cantidad: item.cantidad,
           precioSnapshot,

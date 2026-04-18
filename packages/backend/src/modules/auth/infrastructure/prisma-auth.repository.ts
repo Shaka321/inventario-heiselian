@@ -3,13 +3,19 @@ import { PrismaService } from '../../../prisma.service';
 import type { IAuthRepository } from '../repositories/auth.repository.interface';
 import { Usuario } from '../../../domain/entities/usuario.entity';
 import { RefreshToken } from '../../../domain/entities/refresh-token.entity';
+import type {
+  Usuario as PrismaUsuario,
+  RefreshToken as PrismaRefreshToken,
+} from '@prisma/client';
 
 @Injectable()
 export class PrismaAuthRepository implements IAuthRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findUsuarioByEmail(email: string): Promise<Usuario | null> {
-    const row = await this.prisma.usuario.findUnique({ where: { email } });
+    const row: PrismaUsuario | null = await this.prisma.usuario.findUnique({
+      where: { email },
+    });
     if (!row) return null;
     return Usuario.crear({
       id: row.id,
@@ -20,7 +26,9 @@ export class PrismaAuthRepository implements IAuthRepository {
   }
 
   async findUsuarioById(id: string): Promise<Usuario | null> {
-    const row = await this.prisma.usuario.findUnique({ where: { id } });
+    const row: PrismaUsuario | null = await this.prisma.usuario.findUnique({
+      where: { id },
+    });
     if (!row) return null;
     return Usuario.crear({
       id: row.id,
@@ -44,9 +52,8 @@ export class PrismaAuthRepository implements IAuthRepository {
   }
 
   async findRefreshToken(tokenHash: string): Promise<RefreshToken | null> {
-    const row = await this.prisma.refreshToken.findUnique({
-      where: { tokenHash },
-    });
+    const row: PrismaRefreshToken | null =
+      await this.prisma.refreshToken.findUnique({ where: { tokenHash } });
     if (!row) return null;
     return RefreshToken.crear({
       id: row.id,

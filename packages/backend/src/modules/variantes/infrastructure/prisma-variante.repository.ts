@@ -4,23 +4,13 @@ import type {
   IVarianteRepository,
   IVariante,
 } from '../repositories/variante.repository.interface';
-
-interface VarianteRow {
-  id: string;
-  productoId: string;
-  sku: string;
-  precio: number | { toString(): string };
-  costo: number | { toString(): string };
-  stock: number;
-  activo: boolean;
-  creadoEn: Date;
-}
+import type { Variante as PrismaVariante } from '@prisma/client';
 
 @Injectable()
 export class PrismaVarianteRepository implements IVarianteRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  private mapRow(row: VarianteRow): IVariante {
+  private mapRow(row: PrismaVariante): IVariante {
     return {
       id: row.id,
       productoId: row.productoId,
@@ -34,17 +24,21 @@ export class PrismaVarianteRepository implements IVarianteRepository {
   }
 
   async findById(id: string): Promise<IVariante | null> {
-    const row = await this.prisma.variante.findUnique({ where: { id } });
+    const row: PrismaVariante | null = await this.prisma.variante.findUnique({
+      where: { id },
+    });
     return row ? this.mapRow(row) : null;
   }
 
   async findBySku(sku: string): Promise<IVariante | null> {
-    const row = await this.prisma.variante.findUnique({ where: { sku } });
+    const row: PrismaVariante | null = await this.prisma.variante.findUnique({
+      where: { sku },
+    });
     return row ? this.mapRow(row) : null;
   }
 
   async findByProductoId(productoId: string): Promise<IVariante[]> {
-    const rows = await this.prisma.variante.findMany({
+    const rows: PrismaVariante[] = await this.prisma.variante.findMany({
       where: { productoId, activo: true },
       orderBy: { sku: 'asc' },
     });
@@ -81,7 +75,7 @@ export class PrismaVarianteRepository implements IVarianteRepository {
   }
 
   async findAll(soloActivas = true): Promise<IVariante[]> {
-    const rows = await this.prisma.variante.findMany({
+    const rows: PrismaVariante[] = await this.prisma.variante.findMany({
       where: soloActivas ? { activo: true } : undefined,
       orderBy: { sku: 'asc' },
     });

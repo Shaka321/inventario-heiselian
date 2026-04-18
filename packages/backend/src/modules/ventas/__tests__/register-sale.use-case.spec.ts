@@ -35,7 +35,7 @@ const makePrismaMock = (variantes: VarianteMock[]) =>
   ({
     $transaction: jest.fn((fn: (tx: unknown) => Promise<unknown>) => {
       const tx = {
-        $queryRawUnsafe: jest.fn().mockResolvedValue(variantes),
+        $queryRaw: jest.fn().mockResolvedValue(variantes),
         variante: { update: jest.fn().mockResolvedValue(undefined) },
         venta: { create: jest.fn().mockResolvedValue(undefined) },
         auditLog: { create: jest.fn().mockResolvedValue(undefined) },
@@ -116,7 +116,7 @@ describe('RegisterSaleUseCase', () => {
     const prisma = {
       $transaction: jest.fn((fn: (tx: unknown) => Promise<unknown>) => {
         const tx = {
-          $queryRawUnsafe: jest.fn().mockResolvedValue(variantes),
+          $queryRaw: jest.fn().mockResolvedValue(variantes),
           variante: { update: jest.fn().mockResolvedValue(undefined) },
           venta: { create: jest.fn().mockResolvedValue(undefined) },
           auditLog: {
