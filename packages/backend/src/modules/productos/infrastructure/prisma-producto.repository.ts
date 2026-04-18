@@ -1,6 +1,9 @@
 ﻿import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma.service';
-import type { IProductoRepository, IProducto } from '../repositories/producto.repository.interface';
+import type {
+  IProductoRepository,
+  IProducto,
+} from '../repositories/producto.repository.interface';
 
 @Injectable()
 export class PrismaProductoRepository implements IProductoRepository {
@@ -10,7 +13,10 @@ export class PrismaProductoRepository implements IProductoRepository {
     return this.prisma.producto.findUnique({ where: { id } });
   }
 
-  async findByNombre(nombre: string, categoriaId: string): Promise<IProducto | null> {
+  async findByNombre(
+    nombre: string,
+    categoriaId: string,
+  ): Promise<IProducto | null> {
     return this.prisma.producto.findFirst({
       where: { nombre, categoriaId, activo: true },
     });
@@ -20,7 +26,10 @@ export class PrismaProductoRepository implements IProductoRepository {
     await this.prisma.producto.create({ data: producto });
   }
 
-  async update(id: string, data: { nombre?: string; categoriaId?: string }): Promise<void> {
+  async update(
+    id: string,
+    data: { nombre?: string; categoriaId?: string },
+  ): Promise<void> {
     await this.prisma.producto.update({ where: { id }, data });
   }
 

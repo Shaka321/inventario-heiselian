@@ -1,8 +1,10 @@
 ﻿import { CreateProductoUseCase } from '../use-cases/create-producto.use-case';
 import { SoftDeleteProductoUseCase } from '../use-cases/soft-delete-producto.use-case';
 import { ConflictException, NotFoundException } from '@nestjs/common';
+import type { IProductoRepository } from '../repositories/producto.repository.interface';
+import type { ICategoriaRepository } from '../../categorias/repositories/categoria.repository.interface';
 
-const mockProductoRepo = {
+const mockProductoRepo: jest.Mocked<IProductoRepository> = {
   findById: jest.fn(),
   findByNombre: jest.fn(),
   save: jest.fn(),
@@ -11,7 +13,7 @@ const mockProductoRepo = {
   findAll: jest.fn(),
 };
 
-const mockCategoriaRepo = {
+const mockCategoriaRepo: jest.Mocked<ICategoriaRepository> = {
   findById: jest.fn(),
   findByNombre: jest.fn(),
   save: jest.fn(),
@@ -19,15 +21,26 @@ const mockCategoriaRepo = {
   findAll: jest.fn(),
 };
 
-const categoriaActiva = { id: 'cat-1', nombre: 'Bebidas', activo: true, creadoEn: new Date() };
-const productoActivo = { id: 'prod-1', nombre: 'Coca Cola', categoriaId: 'cat-1', activo: true, creadoEn: new Date() };
+const categoriaActiva = {
+  id: 'cat-1',
+  nombre: 'Bebidas',
+  activo: true,
+  creadoEn: new Date(),
+};
+const productoActivo = {
+  id: 'prod-1',
+  nombre: 'Coca Cola',
+  categoriaId: 'cat-1',
+  activo: true,
+  creadoEn: new Date(),
+};
 
 describe('CreateProductoUseCase', () => {
   let useCase: CreateProductoUseCase;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useCase = new CreateProductoUseCase(mockProductoRepo as any, mockCategoriaRepo as any);
+    useCase = new CreateProductoUseCase(mockProductoRepo, mockCategoriaRepo);
   });
 
   it('debe crear un producto nuevo', async () => {
@@ -35,8 +48,12 @@ describe('CreateProductoUseCase', () => {
     mockProductoRepo.findByNombre.mockResolvedValue(null);
     mockProductoRepo.save.mockResolvedValue(undefined);
 
-    const result = await useCase.execute({ nombre: 'Coca Cola', categoriaId: 'cat-1' });
+    const result = await useCase.execute({
+      nombre: 'Coca Cola',
+      categoriaId: 'cat-1',
+    });
     expect(result.id).toBeDefined();
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(mockProductoRepo.save).toHaveBeenCalledTimes(1);
   });
 
@@ -61,7 +78,7 @@ describe('SoftDeleteProductoUseCase', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useCase = new SoftDeleteProductoUseCase(mockProductoRepo as any);
+    useCase = new SoftDeleteProductoUseCase(mockProductoRepo);
   });
 
   it('debe desactivar un producto activo', async () => {
@@ -69,6 +86,7 @@ describe('SoftDeleteProductoUseCase', () => {
     mockProductoRepo.softDelete.mockResolvedValue(undefined);
 
     await useCase.execute('prod-1');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(mockProductoRepo.softDelete).toHaveBeenCalledWith('prod-1');
   });
 

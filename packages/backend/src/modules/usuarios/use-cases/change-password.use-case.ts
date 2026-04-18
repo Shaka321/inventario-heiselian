@@ -1,4 +1,9 @@
-﻿import { Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+﻿import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import type { IUsuarioRepository } from '../repositories/usuario.repository.interface';
 import { I_USUARIO_REPOSITORY } from '../repositories/usuario.repository.interface';
 import { ChangePasswordDto } from '../dtos';
@@ -17,7 +22,10 @@ export class ChangePasswordUseCase {
       throw new NotFoundException('Usuario no encontrado');
     }
 
-    const passwordValido = await bcrypt.compare(dto.passwordActual, usuario.passwordHash);
+    const passwordValido = await bcrypt.compare(
+      dto.passwordActual,
+      usuario.passwordHash,
+    );
     if (!passwordValido) {
       throw new UnauthorizedException('Password actual incorrecto');
     }

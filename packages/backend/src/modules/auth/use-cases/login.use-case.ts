@@ -21,7 +21,10 @@ export class LoginUseCase {
       throw new UnauthorizedException('Credenciales invalidas');
     }
 
-    const passwordValido = await bcrypt.compare(dto.password, usuario.passwordHash);
+    const passwordValido = await bcrypt.compare(
+      dto.password,
+      usuario.passwordHash,
+    );
     if (!passwordValido) {
       throw new UnauthorizedException('Credenciales invalidas');
     }
@@ -34,7 +37,10 @@ export class LoginUseCase {
 
     const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
     const refreshTokenValue = crypto.randomBytes(64).toString('hex');
-    const tokenHash = crypto.createHash('sha256').update(refreshTokenValue).digest('hex');
+    const tokenHash = crypto
+      .createHash('sha256')
+      .update(refreshTokenValue)
+      .digest('hex');
 
     const refreshToken = RefreshToken.crear({
       id: crypto.randomUUID(),
@@ -43,7 +49,7 @@ export class LoginUseCase {
     });
 
     await this.authRepo.saveRefreshToken(refreshToken);
-    await this.authRepo.updateLastLogin(usuario.id);
+    await this.authRepo.updateLastLogin();
 
     return {
       accessToken,

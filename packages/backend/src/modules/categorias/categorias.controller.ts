@@ -1,4 +1,15 @@
-﻿import { Controller, Get, Post, Patch, Param, Body, HttpCode, HttpStatus, UseGuards, Query } from '@nestjs/common';
+﻿import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { CreateCategoriaUseCase } from './use-cases/create-categoria.use-case';
 import { UpdateCategoriaUseCase } from './use-cases/update-categoria.use-case';
 import { ListCategoriasUseCase } from './use-cases/list-categorias.use-case';

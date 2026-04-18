@@ -1,11 +1,11 @@
 ﻿import { LoginUseCase } from '../use-cases/login.use-case';
-import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { UnauthorizedException } from '@nestjs/common';
 import { Usuario } from '../../../domain/entities/usuario.entity';
-import { RefreshToken } from '../../../domain/entities/refresh-token.entity';
+import type { IAuthRepository } from '../repositories/auth.repository.interface';
+import type { JwtService } from '@nestjs/jwt';
 
-const mockRepo = {
+const mockRepo: jest.Mocked<IAuthRepository> = {
   findUsuarioByEmail: jest.fn(),
   findUsuarioById: jest.fn(),
   saveRefreshToken: jest.fn(),
@@ -17,14 +17,14 @@ const mockRepo = {
 
 const mockJwtService = {
   sign: jest.fn().mockReturnValue('access-token-mock'),
-};
+} as unknown as JwtService;
 
 describe('LoginUseCase', () => {
   let useCase: LoginUseCase;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useCase = new LoginUseCase(mockRepo as any, mockJwtService as any);
+    useCase = new LoginUseCase(mockRepo, mockJwtService);
   });
 
   it('debe retornar tokens cuando las credenciales son validas', async () => {
@@ -40,11 +40,15 @@ describe('LoginUseCase', () => {
     mockRepo.saveRefreshToken.mockResolvedValue(undefined);
     mockRepo.updateLastLogin.mockResolvedValue(undefined);
 
-    const result = await useCase.execute({ email: 'test@test.com', password: 'password123' });
+    const result = await useCase.execute({
+      email: 'test@test.com',
+      password: 'password123',
+    });
 
     expect(result.accessToken).toBe('access-token-mock');
     expect(result.refreshToken).toBeDefined();
     expect(result.expiresIn).toBe(900);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(mockRepo.saveRefreshToken).toHaveBeenCalledTimes(1);
   });
 

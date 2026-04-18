@@ -21,7 +21,9 @@ export class UpdatePriceUseCase {
       throw new NotFoundException('Variante no encontrada o inactiva');
     }
 
-    const precioAnterior = await this.precioRepo.getCurrentPrice(dto.varianteId);
+    const precioAnterior = await this.precioRepo.getCurrentPrice(
+      dto.varianteId,
+    );
 
     await this.precioRepo.updatePrice(dto.varianteId, dto.nuevoPrecio);
 

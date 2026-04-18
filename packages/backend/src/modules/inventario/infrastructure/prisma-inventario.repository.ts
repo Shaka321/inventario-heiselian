@@ -1,6 +1,9 @@
 ﻿import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma.service';
-import type { IInventarioRepository, ICompra } from '../repositories/inventario.repository.interface';
+import type {
+  IInventarioRepository,
+  ICompra,
+} from '../repositories/inventario.repository.interface';
 
 @Injectable()
 export class PrismaInventarioRepository implements IInventarioRepository {

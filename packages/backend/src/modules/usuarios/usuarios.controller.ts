@@ -1,4 +1,14 @@
-﻿import { Controller, Get, Post, Patch, Param, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+﻿import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import { CreateUsuarioUseCase } from './use-cases/create-usuario.use-case';
 import { UpdateUsuarioUseCase } from './use-cases/update-usuario.use-case';
 import { ChangePasswordUseCase } from './use-cases/change-password.use-case';
@@ -58,7 +68,10 @@ export class UsuariosController {
   @Patch(':id/deactivate')
   @Roles('DUENO')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deactivate(@Param('id') id: string, @CurrentUser() user: CurrentUserData) {
+  async deactivate(
+    @Param('id') id: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
     await this.deactivateUsuarioUseCase.execute(id, user.id);
   }
 }

@@ -1,4 +1,9 @@
-﻿import { Inject, Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+﻿import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import type { ICategoriaRepository } from '../repositories/categoria.repository.interface';
 import { I_CATEGORIA_REPOSITORY } from '../repositories/categoria.repository.interface';
 import { UpdateCategoriaDto } from '../dtos';

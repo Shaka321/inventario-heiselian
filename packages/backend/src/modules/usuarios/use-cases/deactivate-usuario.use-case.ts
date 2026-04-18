@@ -1,4 +1,9 @@
-﻿import { Inject, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+﻿import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import type { IUsuarioRepository } from '../repositories/usuario.repository.interface';
 import { I_USUARIO_REPOSITORY } from '../repositories/usuario.repository.interface';
 

@@ -1,4 +1,9 @@
-﻿import { Inject, Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+﻿import {
+  Inject,
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import type { IProductoRepository } from '../repositories/producto.repository.interface';
 import { I_PRODUCTO_REPOSITORY } from '../repositories/producto.repository.interface';
 import type { ICategoriaRepository } from '../../categorias/repositories/categoria.repository.interface';
@@ -21,9 +26,14 @@ export class CreateProductoUseCase {
       throw new NotFoundException('Categoria no encontrada o inactiva');
     }
 
-    const existente = await this.productoRepo.findByNombre(dto.nombre, dto.categoriaId);
+    const existente = await this.productoRepo.findByNombre(
+      dto.nombre,
+      dto.categoriaId,
+    );
     if (existente) {
-      throw new ConflictException('Ya existe un producto con ese nombre en esta categoria');
+      throw new ConflictException(
+        'Ya existe un producto con ese nombre en esta categoria',
+      );
     }
 
     const producto = {

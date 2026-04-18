@@ -1,4 +1,8 @@
-﻿import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+﻿import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../prisma.service';
 import * as crypto from 'crypto';
 
@@ -36,7 +40,11 @@ export class CancelSaleUseCase {
       });
 
       // AuditLog de anulacion
-      const payload = { ventaId, usuarioId, timestamp: new Date().toISOString() };
+      const payload = {
+        ventaId,
+        usuarioId,
+        timestamp: new Date().toISOString(),
+      };
       const secret = process.env.AUDIT_HMAC_SECRET ?? 'audit-secret-dev';
       const checksum = crypto
         .createHmac('sha256', secret)

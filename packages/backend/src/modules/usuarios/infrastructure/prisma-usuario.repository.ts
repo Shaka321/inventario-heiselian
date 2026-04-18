@@ -3,11 +3,20 @@ import { PrismaService } from '../../../prisma.service';
 import type { IUsuarioRepository } from '../repositories/usuario.repository.interface';
 import { Usuario } from '../../../domain/entities/usuario.entity';
 
+interface UsuarioRow {
+  id: string;
+  email: string;
+  rol: string;
+  passwordHash: string;
+  activo: boolean;
+  creadoEn: Date;
+}
+
 @Injectable()
 export class PrismaUsuarioRepository implements IUsuarioRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  private mapRow(row: { id: string; email: string; rol: string; passwordHash: string; activo: boolean; creadoEn: Date }): Usuario {
+  private mapRow(row: UsuarioRow): Usuario {
     return Usuario.crear({
       id: row.id,
       email: row.email,
@@ -41,11 +50,16 @@ export class PrismaUsuarioRepository implements IUsuarioRepository {
     });
   }
 
-  async update(id: string, data: { rol?: string; activo?: boolean }): Promise<void> {
+  async update(
+    id: string,
+    data: { rol?: string; activo?: boolean },
+  ): Promise<void> {
     await this.prisma.usuario.update({
       where: { id },
       data: {
-        ...(data.rol && { rol: data.rol as any }),
+        ...(data.rol !== undefined && {
+          rol: data.rol as 'DUENO' | 'SUPERVISOR' | 'EMPLEADO',
+        }),
         ...(data.activo !== undefined && { activo: data.activo }),
       },
     });

@@ -1,5 +1,6 @@
 ﻿import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma.service';
+import type { EstadoVenta } from '@prisma/client';
 
 export interface ListSalesFilters {
   usuarioId?: string;
@@ -15,14 +16,20 @@ export class ListSalesUseCase {
   async execute(filters: ListSalesFilters = {}) {
     const ventas = await this.prisma.venta.findMany({
       where: {
-        ...(filters.usuarioId && { usuarioId: filters.usuarioId }),
-        ...(filters.estado && { estado: filters.estado as any }),
-        ...(filters.desde || filters.hasta ? {
-          creadoEn: {
-            ...(filters.desde && { gte: filters.desde }),
-            ...(filters.hasta && { lte: filters.hasta }),
-          },
-        } : {}),
+        ...(filters.usuarioId !== undefined && {
+          usuarioId: filters.usuarioId,
+        }),
+        ...(filters.estado !== undefined && {
+          estado: filters.estado as EstadoVenta,
+        }),
+        ...(filters.desde !== undefined || filters.hasta !== undefined
+          ? {
+              creadoEn: {
+                ...(filters.desde !== undefined && { gte: filters.desde }),
+                ...(filters.hasta !== undefined && { lte: filters.hasta }),
+              },
+            }
+          : {}),
       },
       include: { items: true },
       orderBy: { creadoEn: 'desc' },

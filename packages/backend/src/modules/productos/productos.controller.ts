@@ -1,4 +1,16 @@
-﻿import { Controller, Get, Post, Patch, Delete, Param, Body, HttpCode, HttpStatus, UseGuards, Query } from '@nestjs/common';
+﻿import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { CreateProductoUseCase } from './use-cases/create-producto.use-case';
 import { UpdateProductoUseCase } from './use-cases/update-producto.use-case';
 import { SoftDeleteProductoUseCase } from './use-cases/soft-delete-producto.use-case';

@@ -1,4 +1,14 @@
-﻿import { Controller, Get, Post, Param, Body, HttpCode, HttpStatus, UseGuards, Query } from '@nestjs/common';
+﻿import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { RegisterSaleUseCase } from './use-cases/register-sale.use-case';
 import { CancelSaleUseCase } from './use-cases/cancel-sale.use-case';
 import { GetSaleByIdUseCase } from './use-cases/get-sale-by-id.use-case';
@@ -38,7 +48,10 @@ export class VentasController {
   @Post()
   @Roles('DUENO', 'SUPERVISOR', 'EMPLEADO')
   @HttpCode(HttpStatus.CREATED)
-  async register(@Body() dto: RegisterSaleDto, @CurrentUser() user: CurrentUserData) {
+  async register(
+    @Body() dto: RegisterSaleDto,
+    @CurrentUser() user: CurrentUserData,
+  ) {
     return this.registerSaleUseCase.execute(dto, user.id);
   }
 

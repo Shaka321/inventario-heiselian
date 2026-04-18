@@ -1,6 +1,9 @@
 ﻿import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma.service';
-import type { ICategoriaRepository, ICategoria } from '../repositories/categoria.repository.interface';
+import type {
+  ICategoriaRepository,
+  ICategoria,
+} from '../repositories/categoria.repository.interface';
 
 @Injectable()
 export class PrismaCategoriaRepository implements ICategoriaRepository {
@@ -18,7 +21,10 @@ export class PrismaCategoriaRepository implements ICategoriaRepository {
     await this.prisma.categoria.create({ data: categoria });
   }
 
-  async update(id: string, data: { nombre?: string; activo?: boolean }): Promise<void> {
+  async update(
+    id: string,
+    data: { nombre?: string; activo?: boolean },
+  ): Promise<void> {
     await this.prisma.categoria.update({ where: { id }, data });
   }
 

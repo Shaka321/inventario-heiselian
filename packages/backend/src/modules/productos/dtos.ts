@@ -1,4 +1,10 @@
-﻿import { IsString, MinLength, MaxLength, IsUUID, IsOptional } from 'class-validator';
+﻿import {
+  IsString,
+  MinLength,
+  MaxLength,
+  IsUUID,
+  IsOptional,
+} from 'class-validator';
 
 export class CreateProductoDto {
   @IsString()

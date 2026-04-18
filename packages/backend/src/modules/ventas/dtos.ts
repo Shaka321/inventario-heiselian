@@ -1,4 +1,12 @@
-﻿import { IsUUID, IsIn, IsArray, ValidateNested, IsInt, Min, ArrayMinSize } from 'class-validator';
+﻿import {
+  IsUUID,
+  IsIn,
+  IsArray,
+  ValidateNested,
+  IsInt,
+  Min,
+  ArrayMinSize,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class VentaItemDto {
@@ -17,7 +25,9 @@ export class RegisterSaleDto {
   @Type(() => VentaItemDto)
   items: VentaItemDto[];
 
-  @IsIn(['EFECTIVO', 'TARJETA', 'TRANSFERENCIA', 'QR'], { message: 'Metodo de pago invalido' })
+  @IsIn(['EFECTIVO', 'TARJETA', 'TRANSFERENCIA', 'QR'], {
+    message: 'Metodo de pago invalido',
+  })
   metodoPago: string;
 }
 

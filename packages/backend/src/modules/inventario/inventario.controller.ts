@@ -1,4 +1,12 @@
-﻿import { Controller, Get, Post, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+﻿import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import { RegisterPurchaseUseCase } from './use-cases/register-purchase.use-case';
 import { AdjustStockUseCase } from './use-cases/adjust-stock.use-case';
 import { GetStockReportUseCase } from './use-cases/get-stock-report.use-case';
@@ -34,7 +42,10 @@ export class InventarioController {
   @Post('ajuste-stock')
   @Roles('DUENO', 'SUPERVISOR')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async adjustStock(@Body() dto: AdjustStockDto, @CurrentUser() user: CurrentUserData) {
+  async adjustStock(
+    @Body() dto: AdjustStockDto,
+    @CurrentUser() user: CurrentUserData,
+  ) {
     dto.usuarioId = user.id;
     await this.adjustStockUseCase.execute(dto);
   }

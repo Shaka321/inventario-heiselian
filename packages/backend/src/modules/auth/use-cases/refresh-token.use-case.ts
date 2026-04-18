@@ -15,7 +15,10 @@ export class RefreshTokenUseCase {
   ) {}
 
   async execute(refreshTokenValue: string): Promise<AuthTokensResponse> {
-    const tokenHash = crypto.createHash('sha256').update(refreshTokenValue).digest('hex');
+    const tokenHash = crypto
+      .createHash('sha256')
+      .update(refreshTokenValue)
+      .digest('hex');
     const stored = await this.authRepo.findRefreshToken(tokenHash);
 
     if (!stored || stored.revocado || !stored.estaVigente) {
@@ -37,7 +40,10 @@ export class RefreshTokenUseCase {
 
     const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
     const newRefreshTokenValue = crypto.randomBytes(64).toString('hex');
-    const newTokenHash = crypto.createHash('sha256').update(newRefreshTokenValue).digest('hex');
+    const newTokenHash = crypto
+      .createHash('sha256')
+      .update(newRefreshTokenValue)
+      .digest('hex');
 
     const newRefreshToken = RefreshToken.crear({
       id: crypto.randomUUID(),

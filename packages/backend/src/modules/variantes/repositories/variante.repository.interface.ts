@@ -14,7 +14,10 @@ export interface IVarianteRepository {
   findBySku(sku: string): Promise<IVariante | null>;
   findByProductoId(productoId: string): Promise<IVariante[]>;
   save(variante: IVariante): Promise<void>;
-  update(id: string, data: { sku?: string; precio?: number; costo?: number; activo?: boolean }): Promise<void>;
+  update(
+    id: string,
+    data: { sku?: string; precio?: number; costo?: number; activo?: boolean },
+  ): Promise<void>;
   updateStock(id: string, nuevoStock: number): Promise<void>;
   findAll(soloActivas?: boolean): Promise<IVariante[]>;
 }

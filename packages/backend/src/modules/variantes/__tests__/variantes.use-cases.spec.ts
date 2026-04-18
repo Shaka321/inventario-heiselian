@@ -2,8 +2,10 @@
 import { UpdateVarianteUseCase } from '../use-cases/update-variante.use-case';
 import { GetVarianteStockUseCase } from '../use-cases/get-variante-stock.use-case';
 import { ConflictException, NotFoundException } from '@nestjs/common';
+import type { IVarianteRepository } from '../repositories/variante.repository.interface';
+import type { IProductoRepository } from '../../productos/repositories/producto.repository.interface';
 
-const mockVarianteRepo = {
+const mockVarianteRepo: jest.Mocked<IVarianteRepository> = {
   findById: jest.fn(),
   findBySku: jest.fn(),
   findByProductoId: jest.fn(),
@@ -13,7 +15,7 @@ const mockVarianteRepo = {
   findAll: jest.fn(),
 };
 
-const mockProductoRepo = {
+const mockProductoRepo: jest.Mocked<IProductoRepository> = {
   findById: jest.fn(),
   findByNombre: jest.fn(),
   save: jest.fn(),
@@ -22,15 +24,30 @@ const mockProductoRepo = {
   findAll: jest.fn(),
 };
 
-const productoActivo = { id: 'prod-1', nombre: 'Coca Cola', categoriaId: 'cat-1', activo: true, creadoEn: new Date() };
-const varianteActiva = { id: 'var-1', productoId: 'prod-1', sku: 'CC-500', precio: 5.5, costo: 3.0, stock: 100, activo: true, creadoEn: new Date() };
+const productoActivo = {
+  id: 'prod-1',
+  nombre: 'Coca Cola',
+  categoriaId: 'cat-1',
+  activo: true,
+  creadoEn: new Date(),
+};
+const varianteActiva = {
+  id: 'var-1',
+  productoId: 'prod-1',
+  sku: 'CC-500',
+  precio: 5.5,
+  costo: 3.0,
+  stock: 100,
+  activo: true,
+  creadoEn: new Date(),
+};
 
 describe('CreateVarianteUseCase', () => {
   let useCase: CreateVarianteUseCase;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useCase = new CreateVarianteUseCase(mockVarianteRepo as any, mockProductoRepo as any);
+    useCase = new CreateVarianteUseCase(mockVarianteRepo, mockProductoRepo);
   });
 
   it('debe crear una variante nueva', async () => {
@@ -38,15 +55,28 @@ describe('CreateVarianteUseCase', () => {
     mockVarianteRepo.findBySku.mockResolvedValue(null);
     mockVarianteRepo.save.mockResolvedValue(undefined);
 
-    const result = await useCase.execute({ productoId: 'prod-1', sku: 'CC-500', precio: 5.5, costo: 3.0, stock: 100 });
+    const result = await useCase.execute({
+      productoId: 'prod-1',
+      sku: 'CC-500',
+      precio: 5.5,
+      costo: 3.0,
+      stock: 100,
+    });
     expect(result.id).toBeDefined();
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(mockVarianteRepo.save).toHaveBeenCalledTimes(1);
   });
 
   it('debe lanzar NotFoundException si el producto no existe', async () => {
     mockProductoRepo.findById.mockResolvedValue(null);
     await expect(
-      useCase.execute({ productoId: 'prod-x', sku: 'CC-500', precio: 5.5, costo: 3.0, stock: 100 }),
+      useCase.execute({
+        productoId: 'prod-x',
+        sku: 'CC-500',
+        precio: 5.5,
+        costo: 3.0,
+        stock: 100,
+      }),
     ).rejects.toThrow(NotFoundException);
   });
 
@@ -54,7 +84,13 @@ describe('CreateVarianteUseCase', () => {
     mockProductoRepo.findById.mockResolvedValue(productoActivo);
     mockVarianteRepo.findBySku.mockResolvedValue(varianteActiva);
     await expect(
-      useCase.execute({ productoId: 'prod-1', sku: 'CC-500', precio: 5.5, costo: 3.0, stock: 100 }),
+      useCase.execute({
+        productoId: 'prod-1',
+        sku: 'CC-500',
+        precio: 5.5,
+        costo: 3.0,
+        stock: 100,
+      }),
     ).rejects.toThrow(ConflictException);
   });
 });
@@ -64,7 +100,7 @@ describe('UpdateVarianteUseCase', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useCase = new UpdateVarianteUseCase(mockVarianteRepo as any);
+    useCase = new UpdateVarianteUseCase(mockVarianteRepo);
   });
 
   it('debe actualizar una variante existente', async () => {
@@ -73,12 +109,17 @@ describe('UpdateVarianteUseCase', () => {
     mockVarianteRepo.update.mockResolvedValue(undefined);
 
     await useCase.execute('var-1', { precio: 6.0 });
-    expect(mockVarianteRepo.update).toHaveBeenCalledWith('var-1', { precio: 6.0 });
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(mockVarianteRepo.update).toHaveBeenCalledWith('var-1', {
+      precio: 6.0,
+    });
   });
 
   it('debe lanzar NotFoundException si la variante no existe', async () => {
     mockVarianteRepo.findById.mockResolvedValue(null);
-    await expect(useCase.execute('var-x', { precio: 6.0 })).rejects.toThrow(NotFoundException);
+    await expect(useCase.execute('var-x', { precio: 6.0 })).rejects.toThrow(
+      NotFoundException,
+    );
   });
 });
 
@@ -87,7 +128,7 @@ describe('GetVarianteStockUseCase', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useCase = new GetVarianteStockUseCase(mockVarianteRepo as any);
+    useCase = new GetVarianteStockUseCase(mockVarianteRepo);
   });
 
   it('debe retornar el stock de una variante', async () => {

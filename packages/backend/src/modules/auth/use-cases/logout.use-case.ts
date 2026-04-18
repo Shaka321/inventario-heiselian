@@ -11,7 +11,10 @@ export class LogoutUseCase {
   ) {}
 
   async execute(refreshTokenValue: string): Promise<void> {
-    const tokenHash = crypto.createHash('sha256').update(refreshTokenValue).digest('hex');
+    const tokenHash = crypto
+      .createHash('sha256')
+      .update(refreshTokenValue)
+      .digest('hex');
     await this.authRepo.revokeRefreshToken(tokenHash);
   }
 }

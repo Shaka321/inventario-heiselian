@@ -31,7 +31,10 @@ export class RegisterPurchaseUseCase {
     };
 
     await this.inventarioRepo.registrarCompra(compra);
-    await this.inventarioRepo.incrementarStock(dto.varianteId, dto.cantidadUnidades);
+    await this.inventarioRepo.incrementarStock(
+      dto.varianteId,
+      dto.cantidadUnidades,
+    );
 
     return { id: compra.id };
   }

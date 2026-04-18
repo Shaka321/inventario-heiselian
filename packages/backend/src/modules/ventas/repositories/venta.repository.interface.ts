@@ -18,7 +18,10 @@ export interface IVentaRepository {
   registrarVenta(venta: IVenta): Promise<void>;
   findById(id: string): Promise<IVenta | null>;
   cancelarVenta(id: string): Promise<void>;
-  listVentas(filters?: { usuarioId?: string; estado?: string }): Promise<IVenta[]>;
+  listVentas(filters?: {
+    usuarioId?: string;
+    estado?: string;
+  }): Promise<IVenta[]>;
 }
 
 export const I_VENTA_REPOSITORY = Symbol('IVentaRepository');

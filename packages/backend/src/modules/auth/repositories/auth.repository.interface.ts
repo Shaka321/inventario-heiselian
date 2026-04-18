@@ -8,7 +8,7 @@ export interface IAuthRepository {
   findRefreshToken(tokenHash: string): Promise<RefreshToken | null>;
   revokeRefreshToken(tokenHash: string): Promise<void>;
   revokeAllUserTokens(usuarioId: string): Promise<void>;
-  updateLastLogin(usuarioId: string): Promise<void>;
+  updateLastLogin(): Promise<void>;
 }
 
 export const I_AUTH_REPOSITORY = Symbol('IAuthRepository');

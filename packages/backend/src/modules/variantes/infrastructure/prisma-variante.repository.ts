@@ -1,12 +1,26 @@
 ﻿import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma.service';
-import type { IVarianteRepository, IVariante } from '../repositories/variante.repository.interface';
+import type {
+  IVarianteRepository,
+  IVariante,
+} from '../repositories/variante.repository.interface';
+
+interface VarianteRow {
+  id: string;
+  productoId: string;
+  sku: string;
+  precio: number | { toString(): string };
+  costo: number | { toString(): string };
+  stock: number;
+  activo: boolean;
+  creadoEn: Date;
+}
 
 @Injectable()
 export class PrismaVarianteRepository implements IVarianteRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  private mapRow(row: any): IVariante {
+  private mapRow(row: VarianteRow): IVariante {
     return {
       id: row.id,
       productoId: row.productoId,
@@ -52,7 +66,10 @@ export class PrismaVarianteRepository implements IVarianteRepository {
     });
   }
 
-  async update(id: string, data: { sku?: string; precio?: number; costo?: number; activo?: boolean }): Promise<void> {
+  async update(
+    id: string,
+    data: { sku?: string; precio?: number; costo?: number; activo?: boolean },
+  ): Promise<void> {
     await this.prisma.variante.update({ where: { id }, data });
   }
 

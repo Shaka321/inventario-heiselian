@@ -3,8 +3,6 @@ import { PrismaService } from '../../../prisma.service';
 import type { IAuthRepository } from '../repositories/auth.repository.interface';
 import { Usuario } from '../../../domain/entities/usuario.entity';
 import { RefreshToken } from '../../../domain/entities/refresh-token.entity';
-import { Email } from '../../../domain/value-objects/email.vo';
-import { Rol } from '../../../domain/value-objects/rol.vo';
 
 @Injectable()
 export class PrismaAuthRepository implements IAuthRepository {
@@ -46,7 +44,9 @@ export class PrismaAuthRepository implements IAuthRepository {
   }
 
   async findRefreshToken(tokenHash: string): Promise<RefreshToken | null> {
-    const row = await this.prisma.refreshToken.findUnique({ where: { tokenHash } });
+    const row = await this.prisma.refreshToken.findUnique({
+      where: { tokenHash },
+    });
     if (!row) return null;
     return RefreshToken.crear({
       id: row.id,
@@ -69,7 +69,7 @@ export class PrismaAuthRepository implements IAuthRepository {
     });
   }
 
-  async updateLastLogin(_usuarioId: string): Promise<void> {
+  async updateLastLogin(): Promise<void> {
     // actualizadoEn se actualiza automaticamente via @updatedAt en Prisma
   }
 }

@@ -1,4 +1,12 @@
-﻿import { IsString, MinLength, MaxLength, IsUUID, IsNumber, Min, IsOptional } from 'class-validator';
+﻿import {
+  IsString,
+  MinLength,
+  MaxLength,
+  IsUUID,
+  IsNumber,
+  Min,
+  IsOptional,
+} from 'class-validator';
 
 export class CreateVarianteDto {
   @IsUUID('4', { message: 'productoId debe ser un UUID valido' })

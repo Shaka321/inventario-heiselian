@@ -1,4 +1,13 @@
-﻿import { Controller, Get, Post, Param, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+﻿import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import { UpdatePriceUseCase } from './use-cases/update-price.use-case';
 import { GetPriceHistoryUseCase } from './use-cases/get-price-history.use-case';
 import { UpdatePriceDto } from './dtos';
@@ -19,7 +28,10 @@ export class PreciosController {
   @Post('actualizar')
   @Roles('DUENO', 'SUPERVISOR')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async updatePrice(@Body() dto: UpdatePriceDto, @CurrentUser() user: CurrentUserData) {
+  async updatePrice(
+    @Body() dto: UpdatePriceDto,
+    @CurrentUser() user: CurrentUserData,
+  ) {
     await this.updatePriceUseCase.execute(dto, user.id);
   }
 

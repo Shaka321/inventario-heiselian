@@ -10,7 +10,10 @@ export interface IProductoRepository {
   findById(id: string): Promise<IProducto | null>;
   findByNombre(nombre: string, categoriaId: string): Promise<IProducto | null>;
   save(producto: IProducto): Promise<void>;
-  update(id: string, data: { nombre?: string; categoriaId?: string }): Promise<void>;
+  update(
+    id: string,
+    data: { nombre?: string; categoriaId?: string },
+  ): Promise<void>;
   softDelete(id: string): Promise<void>;
   findAll(soloActivos?: boolean): Promise<IProducto[]>;
 }

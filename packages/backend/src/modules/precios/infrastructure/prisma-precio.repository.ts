@@ -1,6 +1,9 @@
 ﻿import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma.service';
-import type { IPrecioRepository, IPrecioHistorial } from '../repositories/precio.repository.interface';
+import type {
+  IPrecioRepository,
+  IPrecioHistorial,
+} from '../repositories/precio.repository.interface';
 
 @Injectable()
 export class PrismaPrecioRepository implements IPrecioRepository {
