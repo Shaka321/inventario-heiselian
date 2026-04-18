@@ -3,19 +3,34 @@ import { PrismaService } from '../../../prisma.service';
 import type { IAuthRepository } from '../repositories/auth.repository.interface';
 import { Usuario } from '../../../domain/entities/usuario.entity';
 import { RefreshToken } from '../../../domain/entities/refresh-token.entity';
-import type {
-  Usuario as PrismaUsuario,
-  RefreshToken as PrismaRefreshToken,
-} from '@prisma/client';
+
+interface UsuarioRow {
+  id: string;
+  email: string;
+  rol: string;
+  passwordHash: string;
+  activo: boolean;
+  creadoEn: Date;
+  actualizadoEn: Date;
+}
+
+interface RefreshTokenRow {
+  id: string;
+  usuarioId: string;
+  tokenHash: string;
+  expiraEn: Date;
+  revocado: boolean;
+  creadoEn: Date;
+}
 
 @Injectable()
 export class PrismaAuthRepository implements IAuthRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findUsuarioByEmail(email: string): Promise<Usuario | null> {
-    const row: PrismaUsuario | null = await this.prisma.usuario.findUnique({
+    const row = (await this.prisma.usuario.findUnique({
       where: { email },
-    });
+    })) as UsuarioRow | null;
     if (!row) return null;
     return Usuario.crear({
       id: row.id,
@@ -26,9 +41,9 @@ export class PrismaAuthRepository implements IAuthRepository {
   }
 
   async findUsuarioById(id: string): Promise<Usuario | null> {
-    const row: PrismaUsuario | null = await this.prisma.usuario.findUnique({
+    const row = (await this.prisma.usuario.findUnique({
       where: { id },
-    });
+    })) as UsuarioRow | null;
     if (!row) return null;
     return Usuario.crear({
       id: row.id,
@@ -52,8 +67,9 @@ export class PrismaAuthRepository implements IAuthRepository {
   }
 
   async findRefreshToken(tokenHash: string): Promise<RefreshToken | null> {
-    const row: PrismaRefreshToken | null =
-      await this.prisma.refreshToken.findUnique({ where: { tokenHash } });
+    const row = (await this.prisma.refreshToken.findUnique({
+      where: { tokenHash },
+    })) as RefreshTokenRow | null;
     if (!row) return null;
     return RefreshToken.crear({
       id: row.id,

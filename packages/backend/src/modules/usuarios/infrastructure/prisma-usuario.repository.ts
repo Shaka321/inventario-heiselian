@@ -2,13 +2,22 @@
 import { PrismaService } from '../../../prisma.service';
 import type { IUsuarioRepository } from '../repositories/usuario.repository.interface';
 import { Usuario } from '../../../domain/entities/usuario.entity';
-import type { Usuario as PrismaUsuario } from '@prisma/client';
+
+interface UsuarioRow {
+  id: string;
+  email: string;
+  rol: string;
+  passwordHash: string;
+  activo: boolean;
+  creadoEn: Date;
+  actualizadoEn: Date;
+}
 
 @Injectable()
 export class PrismaUsuarioRepository implements IUsuarioRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  private mapRow(row: PrismaUsuario): Usuario {
+  private mapRow(row: UsuarioRow): Usuario {
     return Usuario.crear({
       id: row.id,
       email: row.email,
@@ -18,17 +27,17 @@ export class PrismaUsuarioRepository implements IUsuarioRepository {
   }
 
   async findById(id: string): Promise<Usuario | null> {
-    const row: PrismaUsuario | null = await this.prisma.usuario.findUnique({
+    const row = (await this.prisma.usuario.findUnique({
       where: { id },
-    });
+    })) as UsuarioRow | null;
     if (!row) return null;
     return this.mapRow(row);
   }
 
   async findByEmail(email: string): Promise<Usuario | null> {
-    const row: PrismaUsuario | null = await this.prisma.usuario.findUnique({
+    const row = (await this.prisma.usuario.findUnique({
       where: { email },
-    });
+    })) as UsuarioRow | null;
     if (!row) return null;
     return this.mapRow(row);
   }
@@ -69,7 +78,7 @@ export class PrismaUsuarioRepository implements IUsuarioRepository {
   }
 
   async findAll(): Promise<Usuario[]> {
-    const rows: PrismaUsuario[] = await this.prisma.usuario.findMany();
+    const rows = (await this.prisma.usuario.findMany()) as UsuarioRow[];
     return rows.map((row) => this.mapRow(row));
   }
 }

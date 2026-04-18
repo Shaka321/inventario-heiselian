@@ -4,13 +4,24 @@ import type {
   IVarianteRepository,
   IVariante,
 } from '../repositories/variante.repository.interface';
-import type { Variante as PrismaVariante } from '@prisma/client';
+
+interface VarianteRow {
+  id: string;
+  productoId: string;
+  sku: string;
+  precio: { toString(): string } | number;
+  costo: { toString(): string } | number;
+  stock: number;
+  activo: boolean;
+  creadoEn: Date;
+  actualizadoEn: Date;
+}
 
 @Injectable()
 export class PrismaVarianteRepository implements IVarianteRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  private mapRow(row: PrismaVariante): IVariante {
+  private mapRow(row: VarianteRow): IVariante {
     return {
       id: row.id,
       productoId: row.productoId,
@@ -24,24 +35,24 @@ export class PrismaVarianteRepository implements IVarianteRepository {
   }
 
   async findById(id: string): Promise<IVariante | null> {
-    const row: PrismaVariante | null = await this.prisma.variante.findUnique({
+    const row = (await this.prisma.variante.findUnique({
       where: { id },
-    });
+    })) as VarianteRow | null;
     return row ? this.mapRow(row) : null;
   }
 
   async findBySku(sku: string): Promise<IVariante | null> {
-    const row: PrismaVariante | null = await this.prisma.variante.findUnique({
+    const row = (await this.prisma.variante.findUnique({
       where: { sku },
-    });
+    })) as VarianteRow | null;
     return row ? this.mapRow(row) : null;
   }
 
   async findByProductoId(productoId: string): Promise<IVariante[]> {
-    const rows: PrismaVariante[] = await this.prisma.variante.findMany({
+    const rows = (await this.prisma.variante.findMany({
       where: { productoId, activo: true },
       orderBy: { sku: 'asc' },
-    });
+    })) as VarianteRow[];
     return rows.map((r) => this.mapRow(r));
   }
 
@@ -75,10 +86,10 @@ export class PrismaVarianteRepository implements IVarianteRepository {
   }
 
   async findAll(soloActivas = true): Promise<IVariante[]> {
-    const rows: PrismaVariante[] = await this.prisma.variante.findMany({
+    const rows = (await this.prisma.variante.findMany({
       where: soloActivas ? { activo: true } : undefined,
       orderBy: { sku: 'asc' },
-    });
+    })) as VarianteRow[];
     return rows.map((r) => this.mapRow(r));
   }
 }

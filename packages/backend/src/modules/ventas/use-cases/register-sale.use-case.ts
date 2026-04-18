@@ -45,9 +45,10 @@ export class RegisterSaleUseCase {
         throw new BadRequestException('Una o mas variantes no encontradas');
       }
 
-      const varianteMap = new Map<string, VarianteRaw>(
-        variantes.map((v) => [v.id, v]),
+      const varianteEntries: Array<[string, VarianteRaw]> = variantes.map(
+        (v) => [v.id, v],
       );
+      const varianteMap = new Map<string, VarianteRaw>(varianteEntries);
       let total = 0;
       const itemsConSnapshot: Array<{
         id: string;
