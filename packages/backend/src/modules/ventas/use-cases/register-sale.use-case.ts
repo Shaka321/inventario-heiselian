@@ -2,7 +2,6 @@
 import { PrismaService } from '../../../prisma.service';
 import { RegisterSaleDto } from '../dtos';
 import * as crypto from 'crypto';
-import { MetodoPago } from '@prisma/client';
 
 interface VarianteRaw {
   id: string;
@@ -18,6 +17,8 @@ interface ItemSnapshot {
   cantidad: number;
   precioSnapshot: number;
 }
+
+type MetodoPagoType = 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'QR';
 
 export class StockInsuficienteError extends BadRequestException {
   constructor(sku: string, disponible: number, solicitado: number) {
@@ -38,12 +39,23 @@ export class RegisterSaleUseCase {
     const ventaId = crypto.randomUUID();
     const ahora = new Date();
 
-    const result = await this.prisma.$transaction(async (tx) => {
-      const varianteIds = dto.items.map(
-        (i: { varianteId: string; cantidad: number }) => i.varianteId,
-      );
+    const result = await this.prisma.$transaction(
+      async (tx: Record<string, unknown>) => {
+        const varianteIds = dto.items.map(
+          (i: { varianteId: string; cantidad: number }) => i.varianteId,
+        );
 
-      const variantes = await tx.$queryRaw<VarianteRaw[]>`
+        const txClient = tx as {
+          $queryRaw: <T>(
+            query: TemplateStringsArray,
+            ...values: unknown[]
+          ) => Promise<T>;
+          variante: { update: (args: unknown) => Promise<unknown> };
+          venta: { create: (args: unknown) => Promise<unknown> };
+          auditLog: { create: (args: unknown) => Promise<unknown> };
+        };
+
+        const variantes = await txClient.$queryRaw<VarianteRaw[]>`
         SELECT id::text, sku, precio::float8 as precio, stock, activo
         FROM variantes
         WHERE id = ANY(${varianteIds}::uuid[])
@@ -51,100 +63,101 @@ export class RegisterSaleUseCase {
         FOR UPDATE
       `;
 
-      if (variantes.length !== varianteIds.length) {
-        throw new BadRequestException('Una o mas variantes no encontradas');
-      }
-
-      const varianteEntries: Array<[string, VarianteRaw]> = variantes.map(
-        (v: VarianteRaw) => [v.id, v],
-      );
-      const varianteMap = new Map<string, VarianteRaw>(varianteEntries);
-      let total = 0;
-      const itemsConSnapshot: ItemSnapshot[] = [];
-
-      for (const item of dto.items) {
-        const variante = varianteMap.get(item.varianteId);
-        if (!variante || !variante.activo) {
-          throw new BadRequestException(
-            `Variante ${item.varianteId} no activa`,
-          );
+        if (variantes.length !== varianteIds.length) {
+          throw new BadRequestException('Una o mas variantes no encontradas');
         }
-        if (variante.stock < item.cantidad) {
-          throw new StockInsuficienteError(
-            variante.sku,
-            variante.stock,
-            item.cantidad,
-          );
+
+        const varianteEntries: Array<[string, VarianteRaw]> = variantes.map(
+          (v: VarianteRaw) => [v.id, v],
+        );
+        const varianteMap = new Map<string, VarianteRaw>(varianteEntries);
+        let total = 0;
+        const itemsConSnapshot: ItemSnapshot[] = [];
+
+        for (const item of dto.items) {
+          const variante = varianteMap.get(item.varianteId);
+          if (!variante || !variante.activo) {
+            throw new BadRequestException(
+              `Variante ${item.varianteId} no activa`,
+            );
+          }
+          if (variante.stock < item.cantidad) {
+            throw new StockInsuficienteError(
+              variante.sku,
+              variante.stock,
+              item.cantidad,
+            );
+          }
+          const precioSnapshot = Number(variante.precio);
+          total += precioSnapshot * item.cantidad;
+          itemsConSnapshot.push({
+            id: crypto.randomUUID(),
+            varianteId: item.varianteId,
+            cantidad: item.cantidad,
+            precioSnapshot,
+          });
         }
-        const precioSnapshot = Number(variante.precio);
-        total += precioSnapshot * item.cantidad;
-        itemsConSnapshot.push({
-          id: crypto.randomUUID(),
-          varianteId: item.varianteId,
-          cantidad: item.cantidad,
-          precioSnapshot,
-        });
-      }
 
-      for (const item of dto.items) {
-        await tx.variante.update({
-          where: { id: item.varianteId },
-          data: { stock: { decrement: item.cantidad } },
-        });
-      }
+        for (const item of dto.items) {
+          await txClient.variante.update({
+            where: { id: item.varianteId },
+            data: { stock: { decrement: item.cantidad } },
+          });
+        }
 
-      await tx.venta.create({
-        data: {
-          id: ventaId,
+        await txClient.venta.create({
+          data: {
+            id: ventaId,
+            usuarioId,
+            total,
+            metodoPago: dto.metodoPago as MetodoPagoType,
+            estado: 'COMPLETADA',
+            creadoEn: ahora,
+            items: {
+              create: itemsConSnapshot.map((i: ItemSnapshot) => ({
+                id: i.id,
+                varianteId: i.varianteId,
+                cantidad: i.cantidad,
+                precioSnapshot: i.precioSnapshot,
+              })),
+            },
+          },
+        });
+
+        const payload = {
+          ventaId,
           usuarioId,
           total,
-          metodoPago: dto.metodoPago as MetodoPago,
-          estado: 'COMPLETADA',
-          creadoEn: ahora,
-          items: {
-            create: itemsConSnapshot.map((i: ItemSnapshot) => ({
-              id: i.id,
-              varianteId: i.varianteId,
-              cantidad: i.cantidad,
-              precioSnapshot: i.precioSnapshot,
-            })),
+          metodoPago: dto.metodoPago,
+          items: itemsConSnapshot.map((i: ItemSnapshot) => ({
+            varianteId: i.varianteId,
+            cantidad: i.cantidad,
+            precioSnapshot: i.precioSnapshot,
+          })),
+          timestamp: ahora.toISOString(),
+        };
+
+        const secret = process.env.AUDIT_HMAC_SECRET ?? 'audit-secret-dev';
+        const checksum = crypto
+          .createHmac('sha256', secret)
+          .update(JSON.stringify(payload))
+          .digest('hex');
+
+        await txClient.auditLog.create({
+          data: {
+            id: crypto.randomUUID(),
+            usuarioId,
+            tipoEvento: 'VENTA_CREADA',
+            payload,
+            checksum,
+            creadoEn: ahora,
           },
-        },
-      });
+        });
 
-      const payload = {
-        ventaId,
-        usuarioId,
-        total,
-        metodoPago: dto.metodoPago,
-        items: itemsConSnapshot.map((i: ItemSnapshot) => ({
-          varianteId: i.varianteId,
-          cantidad: i.cantidad,
-          precioSnapshot: i.precioSnapshot,
-        })),
-        timestamp: ahora.toISOString(),
-      };
+        return { id: ventaId, total };
+      },
+    );
 
-      const secret = process.env.AUDIT_HMAC_SECRET ?? 'audit-secret-dev';
-      const checksum = crypto
-        .createHmac('sha256', secret)
-        .update(JSON.stringify(payload))
-        .digest('hex');
-
-      await tx.auditLog.create({
-        data: {
-          id: crypto.randomUUID(),
-          usuarioId,
-          tipoEvento: 'VENTA_CREADA',
-          payload,
-          checksum,
-          creadoEn: ahora,
-        },
-      });
-
-      return { id: ventaId, total };
-    });
-
-    return result;
+    return result as { id: string; total: number };
   }
 }
