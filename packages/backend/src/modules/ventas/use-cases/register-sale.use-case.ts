@@ -2,6 +2,7 @@
 import { PrismaService } from '../../../prisma.service';
 import { RegisterSaleDto } from '../dtos';
 import * as crypto from 'crypto';
+import { MetodoPago } from '@prisma/client';
 
 interface VarianteRaw {
   id: string;
@@ -9,6 +10,13 @@ interface VarianteRaw {
   precio: number;
   stock: number;
   activo: boolean;
+}
+
+interface ItemSnapshot {
+  id: string;
+  varianteId: string;
+  cantidad: number;
+  precioSnapshot: number;
 }
 
 export class StockInsuficienteError extends BadRequestException {
@@ -31,7 +39,9 @@ export class RegisterSaleUseCase {
     const ahora = new Date();
 
     const result = await this.prisma.$transaction(async (tx) => {
-      const varianteIds = dto.items.map((i) => i.varianteId);
+      const varianteIds = dto.items.map(
+        (i: { varianteId: string; cantidad: number }) => i.varianteId,
+      );
 
       const variantes = await tx.$queryRaw<VarianteRaw[]>`
         SELECT id::text, sku, precio::float8 as precio, stock, activo
@@ -46,16 +56,11 @@ export class RegisterSaleUseCase {
       }
 
       const varianteEntries: Array<[string, VarianteRaw]> = variantes.map(
-        (v) => [v.id, v],
+        (v: VarianteRaw) => [v.id, v],
       );
       const varianteMap = new Map<string, VarianteRaw>(varianteEntries);
       let total = 0;
-      const itemsConSnapshot: Array<{
-        id: string;
-        varianteId: string;
-        cantidad: number;
-        precioSnapshot: number;
-      }> = [];
+      const itemsConSnapshot: ItemSnapshot[] = [];
 
       for (const item of dto.items) {
         const variante = varianteMap.get(item.varianteId);
@@ -93,15 +98,11 @@ export class RegisterSaleUseCase {
           id: ventaId,
           usuarioId,
           total,
-          metodoPago: dto.metodoPago as
-            | 'EFECTIVO'
-            | 'TARJETA'
-            | 'TRANSFERENCIA'
-            | 'QR',
+          metodoPago: dto.metodoPago as MetodoPago,
           estado: 'COMPLETADA',
           creadoEn: ahora,
           items: {
-            create: itemsConSnapshot.map((i) => ({
+            create: itemsConSnapshot.map((i: ItemSnapshot) => ({
               id: i.id,
               varianteId: i.varianteId,
               cantidad: i.cantidad,
@@ -116,7 +117,7 @@ export class RegisterSaleUseCase {
         usuarioId,
         total,
         metodoPago: dto.metodoPago,
-        items: itemsConSnapshot.map((i) => ({
+        items: itemsConSnapshot.map((i: ItemSnapshot) => ({
           varianteId: i.varianteId,
           cantidad: i.cantidad,
           precioSnapshot: i.precioSnapshot,

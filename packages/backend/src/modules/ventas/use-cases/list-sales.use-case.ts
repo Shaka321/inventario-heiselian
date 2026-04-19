@@ -1,6 +1,6 @@
 ﻿import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma.service';
-import type { EstadoVenta } from '@prisma/client';
+import { EstadoVenta } from '@prisma/client';
 
 export interface ListSalesFilters {
   usuarioId?: string;

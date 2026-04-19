@@ -111,7 +111,7 @@ describe('RegisterSaleUseCase', () => {
 
   it('debe generar checksum HMAC en el auditLog', async () => {
     const variantes = [makeVariante('var-1', 'CC-500', 5.5, 100)];
-    let auditLogData: AuditLogData | null = null;
+    let auditLogData: AuditLogData | undefined;
 
     const prisma = {
       $transaction: jest.fn((fn: (tx: unknown) => Promise<unknown>) => {
@@ -138,8 +138,8 @@ describe('RegisterSaleUseCase', () => {
       'user-1',
     );
 
-    expect(auditLogData).not.toBeNull();
-    expect((auditLogData as AuditLogData).checksum).toHaveLength(64);
-    expect((auditLogData as AuditLogData).tipoEvento).toBe('VENTA_CREADA');
+    expect(auditLogData).toBeDefined();
+    expect(auditLogData?.checksum).toHaveLength(64);
+    expect(auditLogData?.tipoEvento).toBe('VENTA_CREADA');
   });
 });
