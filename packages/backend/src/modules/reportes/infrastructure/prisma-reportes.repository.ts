@@ -1,4 +1,4 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma.service';
 import {
@@ -89,7 +89,7 @@ export class PrismaReportesRepository implements IReportesRepository {
     const varianteMap = new Map(variantes.map((v: any) => [v.id, v]));
 
     return items.map((item: any) => {
-      const variante = varianteMap.get(item.varianteId) as any;
+      const variante = varianteMap.get(item.varianteId);
       return {
         varianteId: item.varianteId,
         nombreProducto: variante?.producto?.nombre ?? 'Desconocido',
@@ -197,7 +197,3 @@ export class PrismaReportesRepository implements IReportesRepository {
     }));
   }
 }
-
-
-
-

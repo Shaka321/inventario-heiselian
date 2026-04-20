@@ -1,4 +1,4 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma.service';
 import {
@@ -104,8 +104,8 @@ export class PrismaConteoRepository implements IConteoRepository {
     hayDiscrepancias: boolean;
   }> {
     const conteo = await this.findById(id);
-    const varianteIds = conteo!.items.map((i) => i.varianteId);
-    
+    const _varianteIds = conteo!.items.map((i) => i.varianteId);
+
     const discrepancias = conteo!.items
       .map((item) => {
         const cantidadSistema = stockSistema[item.varianteId] ?? 0;
@@ -137,8 +137,8 @@ export class PrismaConteoRepository implements IConteoRepository {
   ): Promise<ConteoInventario> {
     if (aplicarAjuste) {
       const conteo = await this.findById(id);
-      const varianteIds = conteo!.items.map((i) => i.varianteId);
-      
+      const _varianteIds = conteo!.items.map((i) => i.varianteId);
+
       await this.prisma.$transaction(
         conteo!.items.map((item) =>
           this.prisma.variante.update({
@@ -157,9 +157,3 @@ export class PrismaConteoRepository implements IConteoRepository {
     return this.mapear(r);
   }
 }
-
-
-
-
-
-

@@ -1,4 +1,4 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma.service';
 import {
@@ -118,7 +118,3 @@ export class PrismaAjusteRepository implements IAjusteRepository {
     };
   }
 }
-
-
-
-
