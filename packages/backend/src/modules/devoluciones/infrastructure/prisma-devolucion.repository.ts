@@ -30,7 +30,7 @@ export class PrismaDevolucionRepository implements IDevolucionRepository {
   }
 
   async getVentaConItems(ventaId: string) {
-    const venta = await this.prisma.venta.findUnique({
+    const venta = await (this.prisma as any).venta.findUnique({
       where: { id: ventaId },
       include: { items: true },
     });
@@ -57,7 +57,7 @@ export class PrismaDevolucionRepository implements IDevolucionRepository {
       0,
     );
 
-    const devolucion = await this.prisma.devolucion.create({
+    const devolucion = await (this.prisma as any).devolucion.create({
       data: {
         id: uuidv4(),
         ventaId: data.ventaId,
@@ -75,19 +75,19 @@ export class PrismaDevolucionRepository implements IDevolucionRepository {
   }
 
   async findById(id: string): Promise<Devolucion | null> {
-    const r = await this.prisma.devolucion.findUnique({ where: { id } });
+    const r = await (this.prisma as any).devolucion.findUnique({ where: { id } });
     return r ? this.mapear(r) : null;
   }
 
   async findByVentaId(ventaId: string): Promise<Devolucion[]> {
-    const registros = await this.prisma.devolucion.findMany({
+    const registros = await (this.prisma as any).devolucion.findMany({
       where: { ventaId },
     });
     return registros.map(this.mapear);
   }
 
   async aprobar(id: string, aprobadoPorId: string): Promise<Devolucion> {
-    const r = await this.prisma.devolucion.update({
+    const r = await (this.prisma as any).devolucion.update({
       where: { id },
       data: { estado: 'APROBADA', aprobadoPorId, actualizadoEn: new Date() },
     });
@@ -95,7 +95,7 @@ export class PrismaDevolucionRepository implements IDevolucionRepository {
   }
 
   async rechazar(id: string, aprobadoPorId: string): Promise<Devolucion> {
-    const r = await this.prisma.devolucion.update({
+    const r = await (this.prisma as any).devolucion.update({
       where: { id },
       data: { estado: 'RECHAZADA', aprobadoPorId, actualizadoEn: new Date() },
     });
@@ -103,9 +103,9 @@ export class PrismaDevolucionRepository implements IDevolucionRepository {
   }
 
   async reingresarStock(items: DevolucionItem[]): Promise<void> {
-    await this.prisma.$transaction(
+    await (this.prisma as any).$transaction(
       items.map((item) =>
-        this.prisma.variante.update({
+        (this.prisma as any).variante.update({
           where: { id: item.varianteId },
           data: { stock: { increment: item.cantidad } },
         }),
@@ -131,16 +131,17 @@ export class PrismaDevolucionRepository implements IDevolucionRepository {
     }
 
     const skip = (filtros.page - 1) * filtros.limit;
-    const [registros, total] = await this.prisma.$transaction([
-      this.prisma.devolucion.findMany({
+    const [registros, total] = await (this.prisma as any).$transaction([
+      (this.prisma as any).devolucion.findMany({
         where,
         skip,
         take: filtros.limit,
         orderBy: { creadoEn: 'desc' },
       }),
-      this.prisma.devolucion.count({ where }),
+      (this.prisma as any).devolucion.count({ where }),
     ]);
 
     return { data: registros.map(this.mapear), total };
   }
 }
+

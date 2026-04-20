@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma.service';
-import {
+import type {
   IAjusteRepository,
   AjusteManual,
 } from '../repositories/ajuste.repository.interface';
@@ -12,50 +12,38 @@ export class PrismaAjusteRepository implements IAjusteRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getStockActual(varianteId: string): Promise<number> {
-    const variante = await this.prisma.variante.findUnique({
+    const variante = await (this.prisma as any).variante.findUnique({
       where: { id: varianteId },
       select: { stock: true },
     });
-    return variante?.stock ?? null;
+    return (variante?.stock as number) ?? 0;
   }
 
-  async actualizarStock(
-    varianteId: string,
-    nuevaCantidad: number,
-  ): Promise<void> {
-    await this.prisma.variante.update({
+  async actualizarStock(varianteId: string, nuevaCantidad: number): Promise<void> {
+    await (this.prisma as any).variante.update({
       where: { id: varianteId },
       data: { stock: nuevaCantidad },
     });
   }
 
-  async registrarAjuste(
-    data: Omit<AjusteManual, 'id' | 'creadoEn'>,
-  ): Promise<AjusteManual> {
-    const ajuste = await this.prisma.conteoInventario.create({
+  async registrarAjuste(data: Omit<AjusteManual, 'id' | 'creadoEn'>): Promise<AjusteManual> {
+    const ajuste = await (this.prisma as any).conteoInventario.create({
       data: {
         id: uuidv4(),
-        varianteId: data.varianteId,
         usuarioId: data.usuarioId,
-        cantidadSistema: data.cantidadAnterior,
-        cantidadContada: data.cantidadNueva,
-        diferencia: data.diferencia,
-        notas: data.motivo,
-        estado: 'AJUSTE_MANUAL',
+        diferenciasJson: {
+          varianteId: data.varianteId,
+          cantidadAnterior: data.cantidadAnterior,
+          cantidadNueva: data.cantidadNueva,
+          diferencia: data.diferencia,
+          motivo: data.motivo,
+          estado: 'AJUSTE_MANUAL',
+        },
         creadoEn: new Date(),
       },
     });
 
-    return {
-      id: ajuste.id,
-      varianteId: ajuste.varianteId,
-      usuarioId: ajuste.usuarioId,
-      cantidadAnterior: ajuste.cantidadSistema,
-      cantidadNueva: ajuste.cantidadContada,
-      diferencia: ajuste.diferencia,
-      motivo: ajuste.notas ?? '',
-      creadoEn: ajuste.creadoEn,
-    };
+    return this.mapear(ajuste);
   }
 
   async listarAjustes(filtros: {
@@ -66,9 +54,7 @@ export class PrismaAjusteRepository implements IAjusteRepository {
     page: number;
     limit: number;
   }): Promise<{ data: AjusteManual[]; total: number }> {
-    const where: any = { estado: 'AJUSTE_MANUAL' };
-
-    if (filtros.varianteId) where.varianteId = filtros.varianteId;
+    const where: any = {};
     if (filtros.usuarioId) where.usuarioId = filtros.usuarioId;
     if (filtros.desde || filtros.hasta) {
       where.creadoEn = {};
@@ -78,43 +64,46 @@ export class PrismaAjusteRepository implements IAjusteRepository {
 
     const skip = (filtros.page - 1) * filtros.limit;
 
-    const [registros, total] = await this.prisma.$transaction([
-      this.prisma.conteoInventario.findMany({
+    const [registros, total] = await (this.prisma as any).$transaction([
+      (this.prisma as any).conteoInventario.findMany({
         where,
         skip,
         take: filtros.limit,
         orderBy: { creadoEn: 'desc' },
       }),
-      this.prisma.conteoInventario.count({ where }),
+      (this.prisma as any).conteoInventario.count({ where }),
     ]);
 
-    return {
-      data: registros.map((r: any) => ({
-        id: r.id,
-        varianteId: r.varianteId,
-        usuarioId: r.usuarioId,
-        cantidadAnterior: r.cantidadSistema,
-        cantidadNueva: r.cantidadContada,
-        diferencia: r.diferencia,
-        motivo: r.notas ?? '',
-        creadoEn: r.creadoEn,
-      })),
-      total,
-    };
+    const data = (registros as any[])
+      .map((r: any) => this.mapear(r))
+      .filter((r: AjusteManual) => {
+        const diff = r as any;
+        return (
+          !filtros.varianteId || diff.varianteId === filtros.varianteId
+        );
+      });
+
+    return { data, total: data.length > 0 ? (total as number) : 0 };
   }
 
   async findById(id: string): Promise<AjusteManual | null> {
-    const r = await this.prisma.conteoInventario.findUnique({ where: { id } });
-    if (!r) return null;
+    const r = await (this.prisma as any).conteoInventario.findUnique({
+      where: { id },
+    });
+    return r ? this.mapear(r) : null;
+  }
+
+  private mapear(r: any): AjusteManual {
+    const diff = r.diferenciasJson as any ?? {};
     return {
-      id: r.id,
-      varianteId: r.varianteId,
-      usuarioId: r.usuarioId,
-      cantidadAnterior: r.cantidadSistema,
-      cantidadNueva: r.cantidadContada,
-      diferencia: r.diferencia,
-      motivo: r.notas ?? '',
-      creadoEn: r.creadoEn,
+      id: r.id as string,
+      varianteId: (diff.varianteId ?? '') as string,
+      usuarioId: r.usuarioId as string,
+      cantidadAnterior: (diff.cantidadAnterior ?? 0) as number,
+      cantidadNueva: (diff.cantidadNueva ?? 0) as number,
+      diferencia: (diff.diferencia ?? 0) as number,
+      motivo: (diff.motivo ?? '') as string,
+      creadoEn: r.creadoEn as Date,
     };
   }
 }

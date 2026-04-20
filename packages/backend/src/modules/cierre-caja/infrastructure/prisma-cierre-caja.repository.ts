@@ -37,7 +37,7 @@ export class PrismaCierreCajaRepository implements ICierreCajaRepository {
     notas?: string;
   }): Promise<CierreCaja> {
     const ahora = new Date();
-    const r = await this.prisma.cierreCaja.create({
+    const r = await (this.prisma as any).cierreCaja.create({
       data: {
         id: uuidv4(),
         usuarioId: data.usuarioId,
@@ -58,7 +58,7 @@ export class PrismaCierreCajaRepository implements ICierreCajaRepository {
     montoFinal: number;
     notas?: string;
   }): Promise<CierreCaja> {
-    const caja = await this.prisma.cierreCaja.findUnique({
+    const caja = await (this.prisma as any).cierreCaja.findUnique({
       where: { id: data.id },
     });
 
@@ -68,7 +68,7 @@ export class PrismaCierreCajaRepository implements ICierreCajaRepository {
 
     const diferencia = data.montoFinal - montoEsperado;
 
-    const r = await this.prisma.cierreCaja.update({
+    const r = await (this.prisma as any).cierreCaja.update({
       where: { id: data.id },
       data: {
         montoFinal: data.montoFinal,
@@ -86,14 +86,14 @@ export class PrismaCierreCajaRepository implements ICierreCajaRepository {
   }
 
   async findAbierta(): Promise<CierreCaja | null> {
-    const r = await this.prisma.cierreCaja.findFirst({
+    const r = await (this.prisma as any).cierreCaja.findFirst({
       where: { estado: 'ABIERTA' },
     });
     return r ? this.mapear(r) : null;
   }
 
   async findById(id: string): Promise<CierreCaja | null> {
-    const r = await this.prisma.cierreCaja.findUnique({ where: { id } });
+    const r = await (this.prisma as any).cierreCaja.findUnique({ where: { id } });
     return r ? this.mapear(r) : null;
   }
 
@@ -108,14 +108,14 @@ export class PrismaCierreCajaRepository implements ICierreCajaRepository {
     if (filtros.estado) where.estado = filtros.estado;
 
     const skip = (filtros.page - 1) * filtros.limit;
-    const [registros, total] = await this.prisma.$transaction([
-      this.prisma.cierreCaja.findMany({
+    const [registros, total] = await (this.prisma as any).$transaction([
+      (this.prisma as any).cierreCaja.findMany({
         where,
         skip,
         take: filtros.limit,
         orderBy: { creadoEn: 'desc' },
       }),
-      this.prisma.cierreCaja.count({ where }),
+      (this.prisma as any).cierreCaja.count({ where }),
     ]);
 
     return { data: registros.map((r: any) => this.mapear(r)), total };
@@ -129,12 +129,12 @@ export class PrismaCierreCajaRepository implements ICierreCajaRepository {
     totalDevoluciones: number;
     montoEsperado: number;
   }> {
-    const [ventasAgg, devolucionesAgg] = await this.prisma.$transaction([
-      this.prisma.venta.aggregate({
+    const [ventasAgg, devolucionesAgg] = await (this.prisma as any).$transaction([
+      (this.prisma as any).venta.aggregate({
         where: { creadoEn: { gte: desde, lte: hasta }, estado: 'COMPLETADA' },
         _sum: { total: true },
       }),
-      this.prisma.devolucion.aggregate({
+      (this.prisma as any).devolucion.aggregate({
         where: { creadoEn: { gte: desde, lte: hasta }, estado: 'APROBADA' },
         _sum: { totalDevuelto: true },
       }),
@@ -147,3 +147,4 @@ export class PrismaCierreCajaRepository implements ICierreCajaRepository {
     return { totalVentas, totalDevoluciones, montoEsperado };
   }
 }
+

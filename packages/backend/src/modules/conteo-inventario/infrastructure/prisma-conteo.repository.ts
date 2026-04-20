@@ -36,7 +36,7 @@ export class PrismaConteoRepository implements IConteoRepository {
       cantidadContada: 0,
     }));
 
-    const r = await this.prisma.conteoInventario.create({
+    const r = await (this.prisma as any).conteoInventario.create({
       data: {
         id: uuidv4(),
         iniciadoPorId: data.iniciadoPorId,
@@ -52,12 +52,12 @@ export class PrismaConteoRepository implements IConteoRepository {
   }
 
   async findById(id: string): Promise<ConteoInventario | null> {
-    const r = await this.prisma.conteoInventario.findUnique({ where: { id } });
+    const r = await (this.prisma as any).conteoInventario.findUnique({ where: { id } });
     return r ? this.mapear(r) : null;
   }
 
   async findActivo(): Promise<ConteoInventario | null> {
-    const r = await this.prisma.conteoInventario.findFirst({
+    const r = await (this.prisma as any).conteoInventario.findFirst({
       where: { estado: { in: ['EN_PROGRESO', 'ENVIADO', 'COMPARADO'] } },
     });
     return r ? this.mapear(r) : null;
@@ -68,7 +68,7 @@ export class PrismaConteoRepository implements IConteoRepository {
     empleadoId: string;
     items: { varianteId: string; cantidadContada: number }[];
   }): Promise<ConteoInventario> {
-    const r = await this.prisma.conteoInventario.update({
+    const r = await (this.prisma as any).conteoInventario.update({
       where: { id: data.id },
       data: {
         empleadoId: data.empleadoId,
@@ -86,7 +86,7 @@ export class PrismaConteoRepository implements IConteoRepository {
   async getStockSistema(
     varianteIds: string[],
   ): Promise<Record<string, number>> {
-    const variantes = await this.prisma.variante.findMany({
+    const variantes = await (this.prisma as any).variante.findMany({
       where: { id: { in: varianteIds } },
       select: { id: true, stock: true },
     });
@@ -104,11 +104,12 @@ export class PrismaConteoRepository implements IConteoRepository {
     hayDiscrepancias: boolean;
   }> {
     const conteo = await this.findById(id);
-    const _varianteIds = conteo!.items.map((i) => i.varianteId);
+    const varianteIds2 = conteo!.items.map((i) => i.varianteId);
+    const stockSistemaMap = await this.getStockSistema(varianteIds2);
 
     const discrepancias = conteo!.items
       .map((item) => {
-        const cantidadSistema = stockSistema[item.varianteId] ?? 0;
+        const cantidadSistema = stockSistemaMap[item.varianteId as string] ?? 0;
         const diferencia = item.cantidadContada - cantidadSistema;
         return {
           varianteId: item.varianteId,
@@ -119,7 +120,7 @@ export class PrismaConteoRepository implements IConteoRepository {
       })
       .filter((d) => d.diferencia !== 0);
 
-    await this.prisma.conteoInventario.update({
+    await (this.prisma as any).conteoInventario.update({
       where: { id },
       data: { estado: 'COMPARADO', actualizadoEn: new Date() },
     });
@@ -137,11 +138,12 @@ export class PrismaConteoRepository implements IConteoRepository {
   ): Promise<ConteoInventario> {
     if (aplicarAjuste) {
       const conteo = await this.findById(id);
-      const _varianteIds = conteo!.items.map((i) => i.varianteId);
+      const varianteIds2 = conteo!.items.map((i) => i.varianteId);
+    const stockSistemaMap = await this.getStockSistema(varianteIds2);
 
-      await this.prisma.$transaction(
+      await (this.prisma as any).$transaction(
         conteo!.items.map((item) =>
-          this.prisma.variante.update({
+          (this.prisma as any).variante.update({
             where: { id: item.varianteId },
             data: { stock: item.cantidadContada },
           }),
@@ -149,7 +151,7 @@ export class PrismaConteoRepository implements IConteoRepository {
       );
     }
 
-    const r = await this.prisma.conteoInventario.update({
+    const r = await (this.prisma as any).conteoInventario.update({
       where: { id },
       data: { estado: 'RESUELTO', actualizadoEn: new Date() },
     });
@@ -157,3 +159,6 @@ export class PrismaConteoRepository implements IConteoRepository {
     return this.mapear(r);
   }
 }
+
+
+

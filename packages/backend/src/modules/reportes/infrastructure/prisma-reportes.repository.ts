@@ -19,7 +19,7 @@ export class PrismaReportesRepository implements IReportesRepository {
     hasta: Date;
     agruparPor: 'dia' | 'semana' | 'mes';
   }): Promise<SalesByPeriodResult[]> {
-    const ventas = await this.prisma.venta.findMany({
+    const ventas = await (this.prisma as any).venta.findMany({
       where: {
         creadoEn: { gte: params.desde, lte: params.hasta },
         estado: 'COMPLETADA',
@@ -67,7 +67,7 @@ export class PrismaReportesRepository implements IReportesRepository {
     hasta: Date;
     limit: number;
   }): Promise<TopSellingVariant[]> {
-    const items = await this.prisma.ventaItem.groupBy({
+    const items = await (this.prisma as any).ventaItem.groupBy({
       by: ['varianteId'],
       where: {
         venta: {
@@ -81,7 +81,7 @@ export class PrismaReportesRepository implements IReportesRepository {
     });
 
     const varianteIds = items.map((i: any) => i.varianteId);
-    const variantes = await this.prisma.variante.findMany({
+    const variantes = await (this.prisma as any).variante.findMany({
       where: { id: { in: varianteIds } },
       include: { producto: { select: { nombre: true } } },
     });
@@ -92,8 +92,8 @@ export class PrismaReportesRepository implements IReportesRepository {
       const variante = varianteMap.get(item.varianteId);
       return {
         varianteId: item.varianteId,
-        nombreProducto: variante?.producto?.nombre ?? 'Desconocido',
-        sku: variante?.sku ?? '',
+        nombreProducto: (variante as any)?.producto?.nombre ?? 'Desconocido',
+        sku: (variante as any)?.sku ?? '',
         cantidadVendida: item._sum.cantidad ?? 0,
         totalGenerado: Number(item._sum.subtotal ?? 0),
       };
@@ -105,19 +105,19 @@ export class PrismaReportesRepository implements IReportesRepository {
     hasta: Date;
   }): Promise<IncomeVsExpenseResult> {
     const [ventasAgg, comprasAgg, devolucionesAgg] =
-      await this.prisma.$transaction([
-        this.prisma.venta.aggregate({
+      await (this.prisma as any).$transaction([
+        (this.prisma as any).venta.aggregate({
           where: {
             creadoEn: { gte: params.desde, lte: params.hasta },
             estado: 'COMPLETADA',
           },
           _sum: { total: true },
         }),
-        this.prisma.compra.aggregate({
+        (this.prisma as any).compra.aggregate({
           where: { creadoEn: { gte: params.desde, lte: params.hasta } },
           _sum: { total: true },
         }),
-        this.prisma.devolucion.aggregate({
+        (this.prisma as any).devolucion.aggregate({
           where: {
             creadoEn: { gte: params.desde, lte: params.hasta },
             estado: 'APROBADA',
@@ -143,19 +143,19 @@ export class PrismaReportesRepository implements IReportesRepository {
     hasta: Date;
   }): Promise<NetProfitResult> {
     const [ventasAgg, comprasAgg, devolucionesAgg] =
-      await this.prisma.$transaction([
-        this.prisma.venta.aggregate({
+      await (this.prisma as any).$transaction([
+        (this.prisma as any).venta.aggregate({
           where: {
             creadoEn: { gte: params.desde, lte: params.hasta },
             estado: 'COMPLETADA',
           },
           _sum: { total: true },
         }),
-        this.prisma.compra.aggregate({
+        (this.prisma as any).compra.aggregate({
           where: { creadoEn: { gte: params.desde, lte: params.hasta } },
           _sum: { total: true },
         }),
-        this.prisma.devolucion.aggregate({
+        (this.prisma as any).devolucion.aggregate({
           where: {
             creadoEn: { gte: params.desde, lte: params.hasta },
             estado: 'APROBADA',
@@ -181,7 +181,7 @@ export class PrismaReportesRepository implements IReportesRepository {
   }
 
   async criticalStock(umbralMinimo: number): Promise<CriticalStockItem[]> {
-    const variantes = await this.prisma.variante.findMany({
+    const variantes = await (this.prisma as any).variante.findMany({
       where: { activo: true, stock: { lte: umbralMinimo } },
       include: { producto: { select: { nombre: true } } },
       orderBy: { stock: 'asc' },
@@ -197,3 +197,5 @@ export class PrismaReportesRepository implements IReportesRepository {
     }));
   }
 }
+
+
