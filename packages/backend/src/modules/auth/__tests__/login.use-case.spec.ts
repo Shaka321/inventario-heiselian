@@ -1,92 +1,101 @@
-﻿import { LoginUseCase } from '../use-cases/login.use-case';
-import * as bcrypt from 'bcryptjs';
+import { LoginUseCase } from '../use-cases/login.use-case';
+import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException } from '@nestjs/common';
-import { Usuario } from '../../../domain/entities/usuario.entity';
-import type { IAuthRepository } from '../repositories/auth.repository.interface';
-import type { JwtService } from '@nestjs/jwt';
+import { AccountLockoutService } from '../infrastructure/account-lockout.service';
+import * as bcrypt from 'bcryptjs';
 
-const mockRepo: jest.Mocked<IAuthRepository> = {
+const mockUsuario = (rol = 'DUENO') => ({
+  id: 'u1',
+  email: { valor: 'test@test.com' },
+  rol: { valor: rol },
+  passwordHash: '',
+});
+
+const mockRepo = {
   findUsuarioByEmail: jest.fn(),
-  findUsuarioById: jest.fn(),
   saveRefreshToken: jest.fn(),
-  findRefreshToken: jest.fn(),
-  revokeRefreshToken: jest.fn(),
-  revokeAllUserTokens: jest.fn(),
-  updateLastLogin: jest.fn(),
 };
 
 const mockJwtService = {
-  sign: jest.fn().mockReturnValue('access-token-mock'),
-} as unknown as JwtService;
+  sign: jest.fn().mockReturnValue('mock-access-token'),
+};
+
+const mockLockout = {
+  isLocked: jest.fn().mockResolvedValue(false),
+  recordFailedAttempt: jest.fn().mockResolvedValue({ locked: false, attempts: 1 }),
+  clearFailedAttempts: jest.fn().mockResolvedValue(undefined),
+};
 
 describe('LoginUseCase', () => {
   let useCase: LoginUseCase;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useCase = new LoginUseCase(mockRepo, mockJwtService);
+    mockLockout.isLocked.mockResolvedValue(false);
+    mockLockout.recordFailedAttempt.mockResolvedValue({ locked: false, attempts: 1 });
+    useCase = new LoginUseCase(
+      mockRepo as never,
+      mockJwtService as unknown as JwtService,
+      mockLockout as unknown as AccountLockoutService,
+    );
   });
 
-  it('debe retornar tokens cuando las credenciales son validas', async () => {
-    const hash = await bcrypt.hash('password123', 10);
-    const usuario = Usuario.crear({
-      id: 'uuid-1',
-      email: 'test@test.com',
-      rol: 'EMPLEADO',
-      passwordHash: hash,
-    });
-
-    mockRepo.findUsuarioByEmail.mockResolvedValue(usuario);
-    mockRepo.saveRefreshToken.mockResolvedValue(undefined);
-    mockRepo.updateLastLogin.mockResolvedValue(undefined);
-
-    const result = await useCase.execute({
-      email: 'test@test.com',
-      password: 'password123',
-    });
-
-    expect(result.accessToken).toBe('access-token-mock');
-    expect(result.refreshToken).toBeDefined();
-    expect(result.expiresIn).toBe(900);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(mockRepo.saveRefreshToken).toHaveBeenCalledTimes(1);
+  it('lanza UnauthorizedException si la cuenta esta bloqueada', async () => {
+    mockLockout.isLocked.mockResolvedValue(true);
+    await expect(
+      useCase.execute({ email: 'test@test.com', password: 'any' }),
+    ).rejects.toThrow('bloqueada');
   });
 
-  it('debe lanzar UnauthorizedException si el usuario no existe', async () => {
+  it('lanza UnauthorizedException si el usuario no existe', async () => {
     mockRepo.findUsuarioByEmail.mockResolvedValue(null);
     await expect(
-      useCase.execute({ email: 'noexiste@test.com', password: 'password123' }),
+      useCase.execute({ email: 'no@existe.com', password: '123456' }),
     ).rejects.toThrow(UnauthorizedException);
+    expect(mockLockout.recordFailedAttempt).toHaveBeenCalled();
   });
 
-  it('debe lanzar UnauthorizedException si el password es incorrecto', async () => {
-    const hash = await bcrypt.hash('password123', 10);
-    const usuario = Usuario.crear({
-      id: 'uuid-1',
-      email: 'test@test.com',
-      rol: 'EMPLEADO',
-      passwordHash: hash,
-    });
-    mockRepo.findUsuarioByEmail.mockResolvedValue(usuario);
-
+  it('lanza UnauthorizedException si la password es incorrecta', async () => {
+    const hash = await bcrypt.hash('correcta', 10);
+    mockRepo.findUsuarioByEmail.mockResolvedValue({ ...mockUsuario(), passwordHash: hash });
     await expect(
-      useCase.execute({ email: 'test@test.com', password: 'wrong-password' }),
+      useCase.execute({ email: 'test@test.com', password: 'incorrecta' }),
     ).rejects.toThrow(UnauthorizedException);
+    expect(mockLockout.recordFailedAttempt).toHaveBeenCalled();
   });
 
-  it('debe lanzar UnauthorizedException si el usuario esta inactivo', async () => {
-    const hash = await bcrypt.hash('password123', 10);
-    const usuario = Usuario.crear({
-      id: 'uuid-1',
-      email: 'test@test.com',
-      rol: 'EMPLEADO',
-      passwordHash: hash,
-    });
-    usuario.desactivar();
-    mockRepo.findUsuarioByEmail.mockResolvedValue(usuario);
-
+  it('bloquea cuenta al 5to intento fallido', async () => {
+    const hash = await bcrypt.hash('correcta', 10);
+    mockRepo.findUsuarioByEmail.mockResolvedValue({ ...mockUsuario(), passwordHash: hash });
+    mockLockout.recordFailedAttempt.mockResolvedValue({ locked: true, attempts: 5 });
     await expect(
-      useCase.execute({ email: 'test@test.com', password: 'password123' }),
-    ).rejects.toThrow(UnauthorizedException);
+      useCase.execute({ email: 'test@test.com', password: 'incorrecta' }),
+    ).rejects.toThrow('bloqueada por multiples intentos');
+  });
+
+  it('retorna accessToken y rawRefreshToken con credenciales correctas', async () => {
+    const hash = await bcrypt.hash('password123', 10);
+    mockRepo.findUsuarioByEmail.mockResolvedValue({ ...mockUsuario(), passwordHash: hash });
+    mockRepo.saveRefreshToken.mockResolvedValue(undefined);
+
+    const result = await useCase.execute({ email: 'test@test.com', password: 'password123' });
+
+    expect(result.tokens.accessToken).toBe('mock-access-token');
+    expect(result.tokens.expiresIn).toBe(900);
+    expect(result.rawRefreshToken).toBeDefined();
+    expect(mockLockout.clearFailedAttempts).toHaveBeenCalled();
+  });
+
+  it('el payload JWT incluye sessionId y rol correcto', async () => {
+    const hash = await bcrypt.hash('password123', 10);
+    mockRepo.findUsuarioByEmail.mockResolvedValue({ ...mockUsuario('DUENO'), passwordHash: hash });
+    mockRepo.saveRefreshToken.mockResolvedValue(undefined);
+
+    await useCase.execute({ email: 'test@test.com', password: 'password123' });
+
+    const signCall = mockJwtService.sign.mock.calls[0][0];
+    expect(signCall.sessionId).toBeDefined();
+    expect(signCall.sub).toBe('u1');
+    expect(signCall.rol).toBe('DUENO');
   });
 });

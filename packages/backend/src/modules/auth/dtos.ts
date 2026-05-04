@@ -1,4 +1,4 @@
-﻿import { IsEmail, IsString, MinLength, MaxLength } from 'class-validator';
+import { IsEmail, IsString, MinLength, MaxLength } from 'class-validator';
 
 export class LoginDto {
   @IsEmail({}, { message: 'Email invalido' })
@@ -17,7 +17,6 @@ export class RefreshTokenDto {
 
 export interface AuthTokensResponse {
   accessToken: string;
-  refreshToken: string;
   expiresIn: number;
 }
 
@@ -25,6 +24,14 @@ export interface JwtPayload {
   sub: string;
   email: string;
   rol: string;
+  sessionId: string;
   iat?: number;
   exp?: number;
+}
+
+export interface AuthenticatedUser {
+  id: string;
+  email: string;
+  rol: string;
+  sessionId: string;
 }

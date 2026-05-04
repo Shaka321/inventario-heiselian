@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -20,6 +22,9 @@ import { CacheModule } from './shared/cache/cache.module';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([
+      { name: 'global', ttl: 60000, limit: 100 },
+    ]),
     ConfigModule.forRoot({ isGlobal: true }),
     CacheModule,
     AuthModule,
@@ -38,6 +43,7 @@ import { CacheModule } from './shared/cache/cache.module';
     ReportesModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },AppService],
 })
 export class AppModule {}

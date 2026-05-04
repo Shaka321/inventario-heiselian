@@ -1,10 +1,11 @@
-﻿import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import type { Request } from 'express';
 
 export interface CurrentUserData {
   id: string;
   email: string;
   rol: string;
+  sessionId: string;
 }
 
 export const CurrentUser = createParamDecorator(
