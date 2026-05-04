@@ -1,62 +1,62 @@
-﻿import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import type { IAuthRepository } from '../repositories/auth.repository.interface';
+import { Inject } from '@nestjs/common';
 import { I_AUTH_REPOSITORY } from '../repositories/auth.repository.interface';
-import * as crypto from 'crypto';
-import { AuthTokensResponse, JwtPayload } from '../dtos';
+import type { IAuthRepository } from '../repositories/auth.repository.interface';
+import type { AuthTokensResponse, JwtPayload } from '../dtos';
 import { RefreshToken } from '../../../domain/entities/refresh-token.entity';
+import { createHash, randomUUID } from 'crypto';
 
 @Injectable()
 export class RefreshTokenUseCase {
   constructor(
     @Inject(I_AUTH_REPOSITORY)
-    private readonly authRepo: IAuthRepository,
+    private readonly authRepository: IAuthRepository,
     private readonly jwtService: JwtService,
   ) {}
 
-  async execute(refreshTokenValue: string): Promise<AuthTokensResponse> {
-    const tokenHash = crypto
-      .createHash('sha256')
-      .update(refreshTokenValue)
-      .digest('hex');
-    const stored = await this.authRepo.findRefreshToken(tokenHash);
+  async execute(rawRefreshToken: string): Promise<{ tokens: AuthTokensResponse; rawRefreshToken: string }> {
+    const tokenHash = createHash('sha256').update(rawRefreshToken).digest('hex');
 
-    if (!stored || stored.revocado || !stored.estaVigente) {
+    const storedToken = await this.authRepository.findRefreshToken(tokenHash);
+    if (!storedToken || storedToken.revocado || storedToken.expiraEn < new Date()) {
       throw new UnauthorizedException('Refresh token invalido o expirado');
     }
 
-    const usuario = await this.authRepo.findUsuarioById(stored.usuarioId);
-    if (!usuario || !usuario.activo) {
-      throw new UnauthorizedException('Usuario no encontrado o inactivo');
+    const usuario = await this.authRepository.findUsuarioById(storedToken.usuarioId);
+    if (!usuario) {
+      throw new UnauthorizedException('Usuario no encontrado');
     }
 
-    await this.authRepo.revokeRefreshToken(tokenHash);
+    await this.authRepository.revokeRefreshToken(tokenHash);
+
+    const sessionId = randomUUID();
 
     const payload: JwtPayload = {
       sub: usuario.id,
       email: usuario.email.valor,
       rol: usuario.rol.valor,
+      sessionId,
     };
 
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
-    const newRefreshTokenValue = crypto.randomBytes(64).toString('hex');
-    const newTokenHash = crypto
-      .createHash('sha256')
-      .update(newRefreshTokenValue)
-      .digest('hex');
+    const accessToken = this.jwtService.sign(payload);
+
+    const newRawRefreshToken = randomUUID();
+    const newTokenHash = createHash('sha256').update(newRawRefreshToken).digest('hex');
 
     const newRefreshToken = RefreshToken.crear({
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       usuarioId: usuario.id,
       tokenHash: newTokenHash,
     });
 
-    await this.authRepo.saveRefreshToken(newRefreshToken);
+    await this.authRepository.saveRefreshToken(newRefreshToken);
 
-    return {
+    const tokens: AuthTokensResponse = {
       accessToken,
-      refreshToken: newRefreshTokenValue,
-      expiresIn: 900,
+      expiresIn: 15 * 60,
     };
+
+    return { tokens, rawRefreshToken: newRawRefreshToken };
   }
 }
